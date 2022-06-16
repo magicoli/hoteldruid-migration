@@ -1,0 +1,9 @@
+#*#
+*~
+\#*#
+.#*
+._*
+sources/
+tmp/
+vendor/
+composer.lock
