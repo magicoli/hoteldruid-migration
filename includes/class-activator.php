@@ -4,10 +4,10 @@
  * Fired during plugin activation
  *
  * @link       http://example.com
- * @since      1.0.0
+ * @since      0.1.0
  *
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
+ * @package    Hoteldruid_Migration
+ * @subpackage Hoteldruid_Migration/includes
  */
 
 /**
@@ -15,19 +15,19 @@
  *
  * This class defines all code necessary to run during the plugin's activation.
  *
- * @since      1.0.0
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
+ * @since      0.1.0
+ * @package    Hoteldruid_Migration
+ * @subpackage Hoteldruid_Migration/includes
  * @author     Your Name <email@example.com>
  */
-class Plugin_Name_Activator {
+class Hoteldruid_Migration_Activator {
 
 	/**
 	 * Short Description. (use period)
 	 *
 	 * Long Description.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public static function activate() {
 
