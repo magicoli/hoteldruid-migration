@@ -111,6 +111,8 @@ class Hoteldruid_Migration {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-i18n.php';
 
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/metabox.php';
+		
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
@@ -121,6 +123,7 @@ class Hoteldruid_Migration {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-public.php';
+
 
 		$this->loader = new Hoteldruid_Migration_Loader();
 
