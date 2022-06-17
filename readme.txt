@@ -49,7 +49,7 @@ While there are several WooCommerce offers for hotel booking, I didn't find any 
 
 * [WordPress](https://wordpress.org) for the website
 * [WooCommerce](https://woocommerce.com/) for orders, online payment and billing
-* [WooCommerce Bookings](https://woocommerce.com/products/woocommerce-bookings/) for online reservations As for now, WooCommerce Bookings lacks external calendar sync (except using a Google Calendar). However it seems the best solution to mix several types of services in an unified, coherent environment, so this will be the goal of ano
+* [WooCommerce Bookings](https://woocommerce.com/products/woocommerce-bookings/) for online reservations As for now, WooCommerce Bookings lacks external calendar sync (except using a Google Calendar). However it seems the best solution to mix several types of services in an unified, coherent environment. This gap will eventually be filled by [bookings-calendar-sync](https://github.com/magicoli/bookings-calendar-sync) project.
 * [Lodgify](https://Lodgify1.referralrock.com/l/1OLIVIERVAN88/) OTA: external, real time calendar synchronisation as well as a complete solution for booking management.
 
 == Installation ==
