@@ -1,7 +1,7 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       HotelDruid migration to WooCommerce
+ * Plugin Name:       HotelDruid migration tool to WooCommerce
  * Plugin URI:        https://magiiic.com/wordpress/hoteldruid-migration
  * Description:       Migrate HotelDruid backup to WooCommerce Bookings
  * Version:           0.1.0
