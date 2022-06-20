@@ -102,7 +102,7 @@ class Hoteldruid_Migration_Admin {
 
 }
 
-function hmigr_admin_notice($notice, $class='info', $dismissible=true ) {
+function hdm_admin_notice($notice, $class='info', $dismissible=true ) {
   if(empty($notice)) return;
   if($dismissible) $is_dismissible = 'is-dismissible';
 	if(is_admin()) {
@@ -114,12 +114,12 @@ function hmigr_admin_notice($notice, $class='info', $dismissible=true ) {
     <?php
   } );
 	} else {
-		hmigr_transient_admin_notice($notice, $class, $dismissible, __FUNCTION__);
+		hdm_transient_admin_notice($notice, $class, $dismissible, __FUNCTION__);
 	}
 }
 
-function hmigr_transient_admin_notice( $notice, $class='info', $dismissible=true, $key = NULL ) {
-	$transient_key = sanitize_title(HMIGR_PLUGIN_NAME . '_hmigr_transient_admin_notices');
+function hdm_transient_admin_notice( $notice, $class='info', $dismissible=true, $key = NULL ) {
+	$transient_key = sanitize_title(HMIGR_PLUGIN_NAME . '_hdm_transient_admin_notices');
 
 	$queue = get_transient( $transient_key );
 	if(!is_array($queue)) $queue = array($queue);
@@ -129,15 +129,15 @@ function hmigr_transient_admin_notice( $notice, $class='info', $dismissible=true
 	set_transient( $transient_key, $queue );
 }
 
-function hmigr_get_transient_admin_notices() {
+function hdm_get_transient_admin_notices() {
 	if(!is_admin()) return;
-	$transient_key = sanitize_title(HMIGR_PLUGIN_NAME . '_hmigr_transient_admin_notices');
+	$transient_key = sanitize_title(HMIGR_PLUGIN_NAME . '_hdm_transient_admin_notices');
 	$queue = get_transient( $transient_key );
 	if(!is_array($queue)) $queue = array($queue);
 	foreach($queue as $key => $notice) {
 		if(!is_array($notice)) continue;
-		hmigr_admin_notice($notice['notice'], $notice['class'], $notice['dismissible'] );
+		hdm_admin_notice($notice['notice'], $notice['class'], $notice['dismissible'] );
 	}
 	delete_transient( $transient_key );
 }
-add_action('admin_head', 'hmigr_get_transient_admin_notices');
+add_action('admin_head', 'hdm_get_transient_admin_notices');
