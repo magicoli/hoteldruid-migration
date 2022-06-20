@@ -74,38 +74,47 @@ function hdm_get_file_info($file) {
   $info['mtime'] = wp_date( $datetimeformat, filemtime($file) );
   $info['mime'] =  mime_content_type($file);
 
-  libxml_use_internal_errors(true);
-  $dom = new DOMDocument;
-  $dom->loadHTMLFile($file);
-  libxml_use_internal_errors(false);
 
   $tables = array();
-  $clients = array();
-  $bookings = array();
-  $years = array();
 
-  foreach( $dom->getElementsByTagName('tabella') as $node) {
-    $tablename = $node->getElementsByTagName('nometabella')->item(0)->nodeValue;
-    // error_log("tablename " . $tablename);
+  $clients = get_transient('hoteldruid_migration_table_clients');
+  $bookings = get_transient('hoteldruid_migration_table_bookings');
+  $years = get_transient('hoteldruid_migration_table_years');
+  if(!$clients |! $bookings) {
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument;
+    $dom->loadHTMLFile($file);
+    libxml_use_internal_errors(false);
+    $years = array();
+    $clients = array();
+    $bookings = array();
+    foreach( $dom->getElementsByTagName('tabella') as $node) {
+      $tablename = $node->getElementsByTagName('nometabella')->item(0)->nodeValue;
+      // error_log("tablename " . $tablename);
 
-    switch(preg_replace('/[0-9]{4}$/', '', $tablename)) {
-      case 'clienti':
-      $clients = flatten_array(node2array($node));
-      break;
+      switch(preg_replace('/[0-9]{4}$/', '', $tablename)) {
+        case 'clienti':
+        $clients = flatten_array(node2array($node));
+        break;
 
-      case 'prenota':
-      $year=preg_replace('/.*([0-9]{4})$/', '$1', $tablename);
-      $data = flatten_array(node2array($node));
-      if(!empty($data)) {
-        $bookings = array_merge($bookings, $data);
-        $years[] = $year;
+        case 'prenota':
+        $year=preg_replace('/.*([0-9]{4})$/', '$1', $tablename);
+        $data = flatten_array(node2array($node));
+        if(!empty($data)) {
+          $bookings = array_merge($bookings, $data);
+          $years[] = $year;
+        }
+        break;
+
+        // default:
+        // $tables[$tablename] = $data;
       }
-      break;
-
-      // default:
-      // $tables[$tablename] = $data;
     }
+    set_transient('hoteldruid_migration_table_clients', $clients, 86400);
+    set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);
+    set_transient('hoteldruid_migration_table_years', $years, 86400);
   }
+
   $info['clients'] = count($clients);
   $info['bookings'] = count($bookings);
   if(!empty($years)) $info['years'] = count($years) . " (from " . min($years) . " to " . max($years) . ")";
