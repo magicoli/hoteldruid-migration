@@ -75,7 +75,7 @@ function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
 
   $meta_boxes[] = [
     'title'          => __( 'Accommodations', 'hoteldruid-migration' ),
-    'id'             => 'tab-accommodations',
+    'id'             => 'hoteldruid-migration-accommodations',
     'settings_pages' => ['hoteldruid-migration'],
     'tab'            => 'accommodations',
     'visible'        => [
@@ -100,7 +100,7 @@ function hoteldruid_migration_tab_clients( $meta_boxes ) {
 
   $meta_boxes[] = [
     'title'          => __( 'Clients', 'hoteldruid-migration' ),
-    'id'             => 'tab-clients',
+    'id'             => 'hoteldruid-migration-clients',
     'settings_pages' => ['hoteldruid-migration'],
     'tab'            => 'clients',
     'fields'         => [
@@ -121,7 +121,7 @@ function hoteldruid_migration_tab_bookings( $meta_boxes ) {
 
   $meta_boxes[] = [
     'title'          => __( 'Bookings', 'hoteldruid-migration' ),
-    'id'             => 'tab-bookings',
+    'id'             => 'hoteldruid-migration-bookings',
     'settings_pages' => ['hoteldruid-migration'],
     'tab'            => 'bookings',
     'fields'         => [
