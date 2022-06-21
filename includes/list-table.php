@@ -35,23 +35,25 @@ class HDM_List_Table extends WP_List_Table {
         'iddatafine' => __('iddatafine', 'hoteldruid-migration'),
         // 'assegnazioneapp' => __('assegnazioneapp', 'hoteldruid-migration'),
         // 'app_assegnabili' => __('app_assegnabili', 'hoteldruid-migration'),
-        'num_persone' => __('num_persone', 'hoteldruid-migration'),
-        'cat_persone' => __('cat_persone', 'hoteldruid-migration'),
+        'num_persone' => __('guests', 'hoteldruid-migration'),
+        // 'cat_persone' => __('cat_persone', 'hoteldruid-migration'),
+        'adults' => __('adults', 'hoteldruid-migration'),
+        'children' => __('children', 'hoteldruid-migration'),
         // 'idprenota_compagna' => __('idprenota_compagna', 'hoteldruid-migration'),
         // 'tariffa' => __('tariffa', 'hoteldruid-migration'),
         // 'tariffesettimanali' => __('tariffesettimanali', 'hoteldruid-migration'),
         // 'incompatibilita' => __('incompatibilita', 'hoteldruid-migration'),
-        'sconto' => __('sconto', 'hoteldruid-migration'),
-        'tariffa_tot' => __('tariffa_tot', 'hoteldruid-migration'),
-        'caparra' => __('caparra', 'hoteldruid-migration'),
-        'commissioni' => __('commissioni', 'hoteldruid-migration'),
+        'sconto' => __('discount', 'hoteldruid-migration'),
+        'tariffa_tot' => __('total', 'hoteldruid-migration'),
+        'caparra' => __('deposit', 'hoteldruid-migration'),
+        'commissioni' => __('commission', 'hoteldruid-migration'),
         // 'tasseperc' => __('tasseperc', 'hoteldruid-migration'),
-        'pagato' => __('pagato', 'hoteldruid-migration'),
-        'valuta' => __('valuta', 'hoteldruid-migration'),
+        'pagato' => __('paid', 'hoteldruid-migration'),
+        // 'valuta' => __('valuta', 'hoteldruid-migration'),
         // 'metodo_pagamento' => __('metodo_pagamento', 'hoteldruid-migration'),
-        'codice' => __('codice', 'hoteldruid-migration'),
-        'origine' => __('origine', 'hoteldruid-migration'),
-        'commento' => __('commento', 'hoteldruid-migration'),
+        'codice' => __('code', 'hoteldruid-migration'),
+        'origine' => __('origin', 'hoteldruid-migration'),
+        'commento' => __('comment', 'hoteldruid-migration'),
         // 'conferma' => __('conferma', 'hoteldruid-migration'),
         // 'checkin' => __('checkin', 'hoteldruid-migration'),
         // 'checkout' => __('checkout', 'hoteldruid-migration'),
@@ -61,7 +63,6 @@ class HDM_List_Table extends WP_List_Table {
         // 'data_modifica' => __('data_modifica', 'hoteldruid-migration'),
         // 'utente_inserimento' => __('utente_inserimento', 'hoteldruid-migration'),
       );
-      // error_log(print_r($columns, true));
       break;
 
       case 'idclienti':
@@ -73,7 +74,7 @@ class HDM_List_Table extends WP_List_Table {
         // 'soprannome' => __('soprannome', 'hoteldruid-migration'),
         // 'sesso' => __('sesso', 'hoteldruid-migration'),
         // 'titolo' => __('titolo', 'hoteldruid-migration'),
-        'lingua' => __('lingua', 'hoteldruid-migration'),
+        'lingua' => __('lang', 'hoteldruid-migration'),
         // 'datanascita' => __('datanascita', 'hoteldruid-migration'),
         // 'cittanascita' => __('cittanascita', 'hoteldruid-migration'),
         // 'regionenascita' => __('regionenascita', 'hoteldruid-migration'),
@@ -88,11 +89,11 @@ class HDM_List_Table extends WP_List_Table {
         'street' => __('street', 'hoteldruid-migration'),
         // 'via' => __('via', 'hoteldruid-migration'),
         // 'numcivico' => __('numcivico', 'hoteldruid-migration'),
-        'cap' => __('cap', 'hoteldruid-migration'),
-        'citta' => __('citta', 'hoteldruid-migration'),
-        'regione' => __('regione', 'hoteldruid-migration'),
-        'nazione' => __('nazione', 'hoteldruid-migration'),
-        'telefono' => __('telefono', 'hoteldruid-migration'),
+        'cap' => __('zip', 'hoteldruid-migration'),
+        'citta' => __('city', 'hoteldruid-migration'),
+        'regione' => __('region', 'hoteldruid-migration'),
+        'nazione' => __('country', 'hoteldruid-migration'),
+        'telefono' => __('phone', 'hoteldruid-migration'),
         // 'telefono2' => __('telefono2', 'hoteldruid-migration'),
         // 'telefono3' => __('telefono3', 'hoteldruid-migration'),
         // 'fax' => __('fax', 'hoteldruid-migration'),
@@ -111,8 +112,23 @@ class HDM_List_Table extends WP_List_Table {
       );
       break;
 
+      case 'idappartamenti':
+      $columns = array (
+        'idappartamenti' => __('idappartamenti', 'hoteldruid-migration'),
+        // 'numpiano' => __('numpiano', 'hoteldruid-migration'),
+        'maxoccupanti' => __('max occupancy', 'hoteldruid-migration'),
+        // 'numcasa' => __('numcasa', 'hoteldruid-migration'),
+        // 'app_vicini' => __('app_vicini', 'hoteldruid-migration'),
+        'priorita' => __('priority', 'hoteldruid-migration'),
+        'priorita2' => __('priority 2', 'hoteldruid-migration'),
+        // 'letto' => __('letto', 'hoteldruid-migration'),
+        'commento' => __('comment', 'hoteldruid-migration'),
+      );
+      break;
+
       default:
       $columns = array_combine($keys, $keys);
+      error_log(print_r($columns, true));
     }
     // unset($columns['numpiano'], $columns['app_vicini']);
     // $columns = $keys;
@@ -126,6 +142,18 @@ class HDM_List_Table extends WP_List_Table {
 
   function column_default( $item, $column_name ) {
     switch( $column_name ) {
+      case 'adults':
+      if(empty($item['cat_persone'])) return $item['num_persone'];
+      if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return $item['num_persone'];
+      return preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $item['cat_persone']);
+      break;
+
+      case 'children':
+      if(empty($item['cat_persone'])) return NULL;
+      if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return NULL;
+      return preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
+      break;
+
       case 'name':
       return trim($item[ 'cognome' ] . ' ' . $item[ 'nome' ]);
       break;
@@ -167,6 +195,15 @@ class HDM_List_Table extends WP_List_Table {
     $this->_column_headers = array($columns, $hidden, $sortable);
     $this->items = $this->data;
   }
+
+  /** doesn't work in tabbed settings page context */
+  // function get_sortable_columns() {
+  //   $sortable_columns = array(
+  //     'idclienti'  => array('idappartamenti',false),
+  //     'name'  => array('name',false),
+  //   );
+  //   return $sortable_columns;
+  // }
 }
 
 // Render your page outside the class
