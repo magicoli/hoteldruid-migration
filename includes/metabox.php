@@ -83,7 +83,10 @@ function hdm_get_file_info($file) {
   if(!$clients |! $bookings) {
     libxml_use_internal_errors(true);
     $dom = new DOMDocument;
-    $dom->loadHTMLFile($file);
+    // $dom->loadHTMLFile($file);
+    $str = file_get_contents($file);
+    $dom->loadHTML(mb_convert_encoding($str, 'HTML-ENTITIES', 'UTF-8'));
+
     libxml_use_internal_errors(false);
     $years = array();
     $clients = array();
