@@ -1,6 +1,8 @@
 <?php
 
 // require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
+require_once plugin_dir_path( __FILE__ ) . 'list-table.php';
+
 function hdm_get_option( $option, $default = false ) {
   $value = rwmb_meta( $option, ['object_type' => 'setting'], 'hoteldruid-migration' );
   if($value === NULL) return $default;
@@ -80,8 +82,10 @@ function hdm_get_file_info($file) {
 
   $clients = get_transient('hoteldruid_migration_table_clients');
   $bookings = get_transient('hoteldruid_migration_table_bookings');
+  $accommodations = get_transient('hoteldruid_migration_table_accommodations');
   $years = get_transient('hoteldruid_migration_table_years');
-  if(!$clients |! $bookings) {
+
+  if ( $clients == false || $bookings == false || $accommodations == false ) {
     libxml_use_internal_errors(true);
     $dom = new DOMDocument;
     // $dom->loadHTMLFile($file);
@@ -92,6 +96,7 @@ function hdm_get_file_info($file) {
     $years = array();
     $clients = array();
     $bookings = array();
+    $accommodations = array();
     foreach( $dom->getElementsByTagName('tabella') as $node) {
       $tablename = $node->getElementsByTagName('nometabella')->item(0)->nodeValue;
       // error_log("tablename " . $tablename);
@@ -99,6 +104,10 @@ function hdm_get_file_info($file) {
       switch(preg_replace('/[0-9]{4}$/', '', $tablename)) {
         case 'clienti':
         $clients = flatten_array(node2array($node));
+        break;
+
+        case 'appartamenti':
+        $accommodations = flatten_array(node2array($node));
         break;
 
         case 'prenota':
@@ -114,13 +123,15 @@ function hdm_get_file_info($file) {
         // $tables[$tablename] = $data;
       }
     }
-    set_transient('hoteldruid_migration_table_clients', $clients, 86400);
-    set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);
-    set_transient('hoteldruid_migration_table_years', $years, 86400);
+    if(!empty($clients)) set_transient('hoteldruid_migration_table_clients', $clients, 86400);
+    if(!empty($bookings)) set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);
+    if(!empty($years)) set_transient('hoteldruid_migration_table_years', $years, 86400);
+    if(!empty($accommodations)) set_transient('hoteldruid_migration_table_accommodations', $accommodations, 86400);
   }
 
   $info['clients'] = count($clients);
   $info['bookings'] = count($bookings);
+  $info['accommodations'] = count($accommodations);
   if(!empty($years)) $info['years'] = count($years) . " (from " . min($years) . " to " . max($years) . ")";
 
   wp_cache_set('hdm_backup_file_info', $info, 'hoteldruid-migration');
@@ -155,90 +166,6 @@ function hoteldruid_backup_file_validation($value = NULL, $request = NULL, $para
 }
 
 /**
- * Create settings page
- * @var $settings_pages
- */
-add_filter( 'mb_settings_pages', 'hoteldruid_migration_settings_page' );
-function hoteldruid_migration_settings_page( $settings_pages ) {
-  $settings_pages[] = [
-    'menu_title' => __( 'HotelDruid migration', 'hoteldruid-migration' ),
-    'id'         => 'hoteldruid-migration',
-    'position'   => 25,
-    'parent'     => 'tools.php',
-    'capability' => 'manage_woocommerce',
-    'style'      => 'no-boxes',
-    'columns'    => 1,
-    'icon_url'   => 'dashicons-admin-generic',
-  ];
-
-  return $settings_pages;
-}
-
-/**
- * Add fields to settings page
- * @var [type]
- */
-add_filter( 'rwmb_meta_boxes', 'hoteldruid_migration_settings_fields' );
-function hoteldruid_migration_settings_fields( $meta_boxes ) {
-  $prefix = '';
-
-  $meta_boxes[] = [
-    'title'          => __( 'HotelDruid migration settings', 'hoteldruid-migration' ),
-    'id'             => 'hoteldruid-migration-settings',
-    'settings_pages' => ['hoteldruid-migration'],
-    'fields'         => [
-      [
-        'name'              => __( 'HotelDruid backup file location', 'hoteldruid-migration' ),
-        'id'                => $prefix . 'hoteldruid_backup_file',
-        'type'              => 'file_input',
-        'desc'              => __( 'HotelDruid backup file full path. Must be saved in a place readable by the web server, but outside website folder.', 'hoteldruid-migration' ),
-        'placeholder'       => __( '/full/path/to/hoteld_backup.php', 'hoteldruid-migration' ),
-        'columns'           => 9,
-        'sanitize_callback' => 'hoteldruid_backup_file_validation',
-      ],
-      [
-        'name'              => __( 'File info', 'hoteldruid-migration' ),
-        'id'                => $prefix . 'backup_file_info',
-        'type'              => 'textarea',
-        'rows'              => 12,
-        'disabled'          => true,
-        'readonly'          => true,
-        'sanitize_callback' => 'backup_file_info_validation',
-        'visible'           => [
-          'when'     => [['hoteldruid_backup_file', '!=', '']],
-          'relation' => 'and',
-        ],
-      ],
-      [
-        'name'    => __( 'Process backup file', 'hoteldruid-migration' ),
-        'id'      => $prefix . 'process_backup_file',
-        'type'    => 'switch',
-        'desc'    => __( 'Check this box to actually import data from the selected HotelDruid backup file.', 'hoteldruid-migration' ),
-        'style'   => 'rounded',
-        'visible' => [
-          'when'     => [['hoteldruid_backup_file', '!=', ''], ['backup_file_info', '!=', '']],
-          'relation' => 'and',
-        ],
-      ],
-    ],
-    'validation'     => [
-      'rules'    => [
-        $prefix . 'hoteldruid_backup_file' => [
-          'extension' => 'php,php.gz',
-        ],
-      ],
-      'messages' => [
-        $prefix . 'hoteldruid_backup_file' => [
-          'extension' => 'Allowed formats: *.php or *.php.gz',
-        ],
-      ],
-    ],
-  ];
-
-  return $meta_boxes;
-}
-
-/**
  * Add settings page link in plugin actions on plugins list page
  */
 function hoteldruid_migration_settings_link( $links ) {
@@ -253,3 +180,53 @@ function hoteldruid_migration_settings_link( $links ) {
 	return $links;
 }
 add_filter( 'plugin_action_links_hoteldruid-migration/hoteldruid-migration.php', 'hoteldruid_migration_settings_link' );
+
+function hdm_list_accommodations_output() {
+  $accommodations = get_transient('hoteldruid_migration_table_accommodations');
+  if(!$accommodations) {
+    return sprintf(
+      __('Select a backup file in settings tab and hit save button to display info', 'hoteldruid-migration'),
+      '<a href="#tab-settings">',
+      '</a>',
+    );
+  }
+  return render_hdm_list_table($accommodations);
+}
+
+function hdm_list_clients_output() {
+  $clients = get_transient('hoteldruid_migration_table_clients');
+  if(!$clients) {
+    return sprintf(
+      __('Select a backup file in settings tab and hit save button to display info', 'hoteldruid-migration'),
+      '<a href="#tab-settings">',
+      '</a>',
+    );
+  }
+  return render_hdm_list_table($clients);
+}
+
+function hdm_list_bookings_output() {
+  $bookings = get_transient('hoteldruid_migration_table_bookings');
+  if(!$bookings) {
+    return sprintf(
+      __('Select a backup file in settings tab and hit save button to display info', 'hoteldruid-migration'),
+      '<a href="#tab-settings">',
+      '</a>',
+    );
+  }
+  return render_hdm_list_table($bookings);
+}
+
+function hdm_file_info_output() {
+  $file = hdm_get_option('hoteldruid_backup_file');
+  if(!$file) {
+    return '<p>' . __('Select a backup file and hit save button to display info', 'hoteldruid-migration') . '</p>';
+  }
+  $info = hdm_get_file_info($file);
+  $output ="";
+  foreach ($info as $key => $value) {
+    $output .= "<li><strong>$key:</strong>$value</li>";
+  }
+  $output = "<ul>$output</ul>";
+  return $output;
+}
