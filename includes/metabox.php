@@ -1,5 +1,6 @@
 <?php
 
+// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 function hdm_get_option( $option, $default = false ) {
   $value = rwmb_meta( $option, ['object_type' => 'setting'], 'hoteldruid-migration' );
   if($value === NULL) return $default;
