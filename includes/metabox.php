@@ -1,6 +1,6 @@
 <?php
 
-// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
+require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 require_once plugin_dir_path( __FILE__ ) . 'list-table.php';
 
 function hdm_get_option( $option, $default = false ) {
