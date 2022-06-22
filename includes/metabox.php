@@ -103,7 +103,36 @@ function hdm_get_file_info($file) {
 
       switch(preg_replace('/[0-9]{4}$/', '', $tablename)) {
         case 'clienti':
-        $clients = flatten_array(node2array($node));
+        $items = flatten_array(node2array($node));
+        $data = [];
+        foreach ($items as $key => $item) {
+          $phone = preg_replace('/[^0-9+]/', '', $item['telefono']);
+          $item['country'] = $item['nazione'];
+          if(preg_match('/^(0590|0690|\\+590|00590)/', $phone)) $item['country'] = "Guadeloupe";
+          else if(preg_match('/^(0596|0696|\\+596|00596)/', $phone)) $item['country'] = "Martinique";
+          else if(preg_match('/^(\\+|00)31/', $phone)) $item['country'] = "Netherlands";
+          else if(preg_match('/^(\\+|00)32/', $phone)) $item['country'] = "Belgium";
+          else if(preg_match('/^(\\+|00)33/', $phone)) $item['country'] = "France";
+          else if(preg_match('/^(\\+|00)44/', $phone)) $item['country'] = "United Kingdom";
+          else if(preg_match('/^(\\+|00)49/', $phone)) $item['country'] = "Germany";
+          else if(preg_match('/^0[167][0-9]{8}/', $phone)) $item['country'] = "France";
+          else if(!empty($item['country'])) $item['country'] = $item['country'];
+          else if(!empty($item['nazionalita'])) $item['country'] = $item['nazionalita'];
+          else if(!empty($item['nazionenascita'])) $item['country'] = $item['nazionenascita'];
+          $item['phone'] = join(', ', array_filter([ $item['telefono'], $item['telefono2'], $item['telefono3'] ]));
+          $emails = [ $item['email'], $item['email2'], $item['email3'] ];
+          $emails = preg_replace('/.*@(guest.airbnb.com|guest.booking.com)/', '', $emails);
+          $item['email'] = join(', ', array_filter( $emails ));
+          unset($item['telefono'], $item['telefono2'], $item['telefono3']);
+          $item['lastname'] = trim($item[ 'cognome' ]);
+          $item['firstname'] = trim($item[ 'nome' ]);
+          $item['displayname'] = trim($item[ 'firstname' ] . ' ' . $item[ 'lastname' ]);
+          $item['street'] = preg_replace('/ Rue$/', '', trim($item[ 'numcivico' ] . ' ' . $item[ 'via' ]));
+
+          $items[$key] = $item;
+        }
+
+        $clients = $items;
         break;
 
         case 'appartamenti':

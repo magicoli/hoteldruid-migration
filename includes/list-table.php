@@ -72,7 +72,7 @@ class HDM_List_Table extends WP_List_Table {
       case 'idclienti':
       $columns = array(
         'idclienti' => __('idclienti', 'hoteldruid-migration'),
-        'name' => __('name', 'hoteldruid-migration'),
+        'displayname' => __('name', 'hoteldruid-migration'),
         // 'cognome' => __('cognome', 'hoteldruid-migration'),
         // 'nome' => __('nome', 'hoteldruid-migration'),
         // 'soprannome' => __('soprannome', 'hoteldruid-migration'),
@@ -96,8 +96,10 @@ class HDM_List_Table extends WP_List_Table {
         'cap' => __('zip', 'hoteldruid-migration'),
         'citta' => __('city', 'hoteldruid-migration'),
         'regione' => __('region', 'hoteldruid-migration'),
-        'nazione' => __('country', 'hoteldruid-migration'),
-        'telefono' => __('phone', 'hoteldruid-migration'),
+        // 'nazione' => __('nazione', 'hoteldruid-migration'),
+        'country' => __('country', 'hoteldruid-migration'),
+        'phone' => __('phone', 'hoteldruid-migration'),
+        // 'telefono' => __('telefono', 'hoteldruid-migration'),
         // 'telefono2' => __('telefono2', 'hoteldruid-migration'),
         // 'telefono3' => __('telefono3', 'hoteldruid-migration'),
         // 'fax' => __('fax', 'hoteldruid-migration'),
@@ -146,53 +148,9 @@ class HDM_List_Table extends WP_List_Table {
 
   function column_default( $item, $column_name ) {
     switch( $column_name ) {
-      // case 'adults':
-      // if(empty($item['cat_persone'])) return $item['num_persone'];
-      // if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return $item['num_persone'];
-      // return preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $item['cat_persone']);
-      // break;
-      //
-      // case 'children':
-      // if(empty($item['cat_persone'])) return NULL;
-      // if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return NULL;
-      // return preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
-      // break;
 
-      // case 'nights':
-      // if(empty($item['tariffesettimanali'])) return NULL;
-      // return count(explode(',', $item['tariffesettimanali']));
-      // break;
-
-      case 'name':
-      return trim($item[ 'cognome' ] . ' ' . $item[ 'nome' ]);
-      break;
-
-      case 'street':
-      return trim($item[ 'numcivico' ] . ' ' . $item[ 'via' ]);
-      break;
-
-      case 'nazione':
-      $phone = preg_replace('/[^0-9+]/', '', $item['telefono']);
-      if(preg_match('/^(0590|0690|\\+590|00590)/', $phone)) return "Guadeloupe";
-      if(preg_match('/^(0596|0696|\\+596|00596)/', $phone)) return "Martinique";
-      if(preg_match('/^(\\+|00)31/', $phone)) return "Netherlands";
-      if(preg_match('/^(\\+|00)32/', $phone)) return "Belgium";
-      if(preg_match('/^(\\+|00)33/', $phone)) return "France";
-      if(preg_match('/^(\\+|00)44/', $phone)) return "United Kingdom";
-      if(preg_match('/^(\\+|00)49/', $phone)) return "Germany";
-      if(preg_match('/^0[167][0-9]{8}/', $phone)) return "France";
-      if(!empty($item['nazione'])) return $item['nazione'];
-      if(!empty($item['nazionalita'])) return $item['nazionalita'];
-      if(!empty($item['nazionenascita'])) return $item['nazionenascita'];
-      return NULL;
-      // case 'id':
-      // case 'user_login':
-      // case 'user_email':
-      // return $item[ $column_name ];
-      //
       default:
       return $item[ $column_name ];
-      // return print_r( $item, true ) ;
     }
   }
 
