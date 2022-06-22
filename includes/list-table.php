@@ -160,17 +160,35 @@ class HDM_List_Table extends WP_List_Table {
     $hidden = array();
     $sortable = $this->get_sortable_columns();
     $this->_column_headers = array($columns, $hidden, $sortable);
+    // usort( $this->data, array( &$this, 'usort_reorder' ) );
     $this->items = $this->data;
   }
 
-  /** doesn't work in tabbed settings page context */
+  /**
+   * Sort doesn't seem work in tabbed settings page context
+   * It's not a big deal in this case, so I won't fix it
+  **/
+
   // function get_sortable_columns() {
   //   $sortable_columns = array(
-  //     'idclienti'  => array('idappartamenti',false),
+  //     'idclienti'  => array('idclienti',false),
+  //     'idappartamenti'  => array('idappartamenti',false),
   //     'name'  => array('name',false),
   //   );
   //   return $sortable_columns;
   // }
+  //
+  // function usort_reorder( $a, $b ) {
+  //   // If no sort, default to title
+  //   $orderby = ( ! empty( $_GET['orderby'] ) ) ? $_GET['orderby'] : 'name';
+  //   // If no order, default to asc
+  //   $order = ( ! empty($_GET['order'] ) ) ? $_GET['order'] : 'asc';
+  //   // Determine sort order
+  //   $result = strcmp( $a[$orderby], $b[$orderby] );
+  //   // Send final sort direction to usort
+  //   return ( $order === 'asc' ) ? $result : -$result;
+  // }
+
 }
 
 // Render your page outside the class
