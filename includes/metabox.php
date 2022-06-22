@@ -1,6 +1,6 @@
 <?php
 
-require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
+// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 require_once plugin_dir_path( __FILE__ ) . 'list-table.php';
 
 function hdm_get_option( $option, $default = false ) {
@@ -112,7 +112,26 @@ function hdm_get_file_info($file) {
 
         case 'prenota':
         $year=preg_replace('/.*([0-9]{4})$/', '$1', $tablename);
-        $data = flatten_array(node2array($node));
+        $items = flatten_array(node2array($node));
+        foreach ($items as $key => $item) {
+          $item['idprenota'] = $year * 10000 + $item['idprenota'];
+          $stamp_arrival = strtotime("$year-01-01 +" . $item['iddatainizio'] . " days -1 day");
+          $stamp_departure = strtotime("$year-01-01 +" . $item['iddatafine'] . " days");
+          $item['arrival'] = date('d-m-Y', $stamp_arrival);
+          $item['departure'] = date('d-m-Y', $stamp_departure);
+          $item['nights'] = ( $stamp_departure - $stamp_arrival ) / 86400;
+          // $item['nights'] = NULL;
+
+          if(empty($item['cat_persone']) || !preg_match('/(child|enfant)/', $item['cat_persone'])) {
+            $item['adults'] = $item['num_persone'];
+            $item['children'] = NULL;
+          } else {
+            $item['adults'] = preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $item['cat_persone']);
+            $item['children'] = preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
+          }
+
+          $data[] = $item;
+        }
         if(!empty($data)) {
           $bookings = array_merge($bookings, $data);
           $years[] = $year;

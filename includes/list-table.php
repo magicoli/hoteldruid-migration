@@ -31,8 +31,11 @@ class HDM_List_Table extends WP_List_Table {
         'idprenota' => __('idprenota', 'hoteldruid-migration'),
         'idclienti' => __('idclienti', 'hoteldruid-migration'),
         'idappartamenti' => __('idappartamenti', 'hoteldruid-migration'),
-        'iddatainizio' => __('iddatainizio', 'hoteldruid-migration'),
-        'iddatafine' => __('iddatafine', 'hoteldruid-migration'),
+        // 'iddatainizio' => __('iddatainizio', 'hoteldruid-migration'),
+        // 'iddatafine' => __('iddatafine', 'hoteldruid-migration'),
+        'arrival' => __('arrival', 'hoteldruid-migration'),
+        'departure' => __('departure', 'hoteldruid-migration'),
+        'nights' => __('nights', 'hoteldruid-migration'),
         // 'assegnazioneapp' => __('assegnazioneapp', 'hoteldruid-migration'),
         // 'app_assegnabili' => __('app_assegnabili', 'hoteldruid-migration'),
         'num_persone' => __('guests', 'hoteldruid-migration'),
@@ -63,6 +66,7 @@ class HDM_List_Table extends WP_List_Table {
         // 'data_modifica' => __('data_modifica', 'hoteldruid-migration'),
         // 'utente_inserimento' => __('utente_inserimento', 'hoteldruid-migration'),
       );
+      // $columns = array_combine($keys, $keys);
       break;
 
       case 'idclienti':
@@ -142,17 +146,22 @@ class HDM_List_Table extends WP_List_Table {
 
   function column_default( $item, $column_name ) {
     switch( $column_name ) {
-      case 'adults':
-      if(empty($item['cat_persone'])) return $item['num_persone'];
-      if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return $item['num_persone'];
-      return preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $item['cat_persone']);
-      break;
+      // case 'adults':
+      // if(empty($item['cat_persone'])) return $item['num_persone'];
+      // if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return $item['num_persone'];
+      // return preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $item['cat_persone']);
+      // break;
+      //
+      // case 'children':
+      // if(empty($item['cat_persone'])) return NULL;
+      // if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return NULL;
+      // return preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
+      // break;
 
-      case 'children':
-      if(empty($item['cat_persone'])) return NULL;
-      if(!preg_match('/(child|enfant)/', $item['cat_persone'])) return NULL;
-      return preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
-      break;
+      // case 'nights':
+      // if(empty($item['tariffesettimanali'])) return NULL;
+      // return count(explode(',', $item['tariffesettimanali']));
+      // break;
 
       case 'name':
       return trim($item[ 'cognome' ] . ' ' . $item[ 'nome' ]);
