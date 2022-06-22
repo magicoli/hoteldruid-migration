@@ -1,7 +1,7 @@
 <?php
 
 // require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
-require_once plugin_dir_path( __FILE__ ) . 'list-table.php';
+require_once plugin_dir_path( __FILE__ ) . 'class-list-table.php';
 
 function hdm_get_option( $option, $default = false ) {
   $value = rwmb_meta( $option, ['object_type' => 'setting'], 'hoteldruid-migration' );
