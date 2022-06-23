@@ -27,7 +27,7 @@ function hoteldruid_migration_settings_fields( $meta_boxes ) {
   $prefix = '';
 
   $meta_boxes[] = [
-    'title'          => __( 'HotelDruid migration settings', 'hoteldruid-migration' ),
+    'title'          => __( 'Settings', 'hoteldruid-migration' ),
     'id'             => 'hoteldruid-migration-settings',
     'settings_pages' => ['hoteldruid-migration'],
     'tab'            => 'settings',
@@ -50,6 +50,13 @@ function hoteldruid_migration_settings_fields( $meta_boxes ) {
           'when'     => [['hoteldruid_backup_file', '!=', '']],
           'relation' => 'or',
         ],
+      ],
+      [
+        'name'              => __( 'Import data in WooCommerce', 'hoteldruid-migration' ),
+        'id'                => $prefix . 'import_data',
+        'type'              => 'button_group',
+        'options'           => hdm_import_button_values(),
+        'sanitize_callback' => 'import_data_field_validation',
       ],
     ],
     'validation'     => [
@@ -78,10 +85,6 @@ function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
     'id'             => 'hoteldruid-migration-accommodations',
     'settings_pages' => ['hoteldruid-migration'],
     'tab'            => 'accommodations',
-    'visible'        => [
-      'when'     => [['hoteldruid_backup_file', '!=', ''], ['backup_file_info', '!=', '']],
-      'relation' => 'and',
-    ],
     'fields'         => [
       [
         'id'       => $prefix . 'hdm_list_accommodations',

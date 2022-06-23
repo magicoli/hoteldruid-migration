@@ -2,7 +2,7 @@
 
 require_once plugin_dir_path( __FILE__ ) . 'class-list-table.php';
 require_once plugin_dir_path( __FILE__ ) . 'functions.php';
-// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
+require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 
 function hdm_import_button_values() {
   if ( hdm_get_option('import_data_processed') == true)
