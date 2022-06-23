@@ -1,77 +1,56 @@
 <?php
 
-// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-list-table.php';
+require_once plugin_dir_path( __FILE__ ) . 'functions.php';
+// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 
-function hdm_get_option( $option, $default = false ) {
-  $value = rwmb_meta( $option, ['object_type' => 'setting'], 'hoteldruid-migration' );
-  if($value === NULL) return $default;
-  return $value;
+function hdm_import_button_values() {
+  if ( hdm_get_option('import_data_processed') == true)
+  return array(
+    'processed' => __('Processed', 'hoteldruid-migration'),
+  );
+
+  // rwmb_mete is not yet returning values here, using get_option instead
+  $options = get_option('hoteldruid-migration', []);
+  $backup_file = isset($_REQUEST['hoteldruid_backup_file']) ? $_REQUEST['hoteldruid_backup_file'] : $options['hoteldruid_backup_file'];
+  $clients = get_transient('hoteldruid_migration_table_clients');
+  $bookings = get_transient('hoteldruid_migration_table_bookings');
+  $accommodations = get_transient('hoteldruid_migration_table_accommodations');
+
+  if($clients && $bookings && $accommodations && !empty($backup_file)) return array(
+    'ready' => 'Ready',
+    'process' => __('Process', 'hoteldruid-migration'),
+  );
+
+  return array(
+    '' => __('Not ready', 'hoteldruid-migration'),
+  );
 }
 
-function hdm_update_option( $option, $value, $autoload = null, $args=[] ) {
-  rwmb_set_meta( 'hoteldruid-migration', $option, $value, $args );
-}
+function import_data_field_validation($value = NULL, $request = NULL, $param = NULL) {
+  $file =hdm_get_option('hoteldruid_backup_file', NULL);
+  $clients = get_transient('hoteldruid_migration_table_clients');
+  $bookings = get_transient('hoteldruid_migration_table_bookings');
+  $accommodations = get_transient('hoteldruid_migration_table_accommodations');
+  if (empty($clients) || empty($accommodations) || empty($bookings) || empty(hdm_get_option('hoteldruid_backup_file'))  )
+  return '';
+  if ( hdm_get_option('import_data_processed' ) == true) return  'processed';
 
-function node2array($node)
-{
-    $array = false;
-    if ($node->hasAttributes())
-    {
-        foreach ($node->attributes as $attr)
-        {
-            $array[$attr->nodeName] = $attr->nodeValue;
-        }
-    }
-
-    if ($node->hasChildNodes())
-    {
-        if ($node->childNodes->length == 1)
-        {
-            $array[$node->firstChild->nodeName] = $node->firstChild->nodeValue;
-        }
-        else
-        {
-            foreach ($node->childNodes as $childNode)
-            {
-                if ($childNode->nodeType != XML_TEXT_NODE)
-                {
-                    $array[$childNode->nodeName][] = node2array($childNode);
-                }
-            }
-        }
-    }
-
-    return $array;
-}
-
-function flatten_array($data) {
-  if(!isset($data['colonnetabella'][0]['nomecolonna'])) return $data;
-  if(!isset($data['righetabella'][0]['riga'])) return [];
-  $rows = array();
-  $keys = array_map('join', $data['colonnetabella'][0]['nomecolonna']);
-  $values = $data['righetabella'][0]['riga'];
-  foreach($values as $key=>$value) {
-    $row = array_combine($keys, $value['cmp']);
-    if(is_array($row)) {
-      $row = array_map('join_if_array', $row);
-      $rows[] = array_map('join_if_array', $row);
-    }
+  if($value == 'process') {
+    error_log('Processing import file');
+    // do some stuff and return 'processed' if succeeded, 'ready' if failed
   }
-  return $rows;
-}
-
-function join_if_array($value) {
-  if(is_array($value)) return join($value);
-  return $value;
+  return 'ready';
+  // return $value;
 }
 
 function hdm_get_file_info($file) {
   $cache = wp_cache_get('hdm_backup_file_info', 'hoteldruid-migration');
   if(!empty($cache)) return $cache;
-  if(empty($file)) return false;
-  if(!is_file($file)) return false;
-  if(!is_readable($file)) return false;
+  if(empty($file) |! is_file($file) |! is_readable($file) ) {
+    hdm_update_option('import_data', '');
+    return false;
+  }
   $info = pathinfo($file);
   $datetimeformat = 'l ' . get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) .':s';
   $info['mtime'] = wp_date( $datetimeformat, filemtime($file) );
@@ -171,10 +150,17 @@ function hdm_get_file_info($file) {
         // $tables[$tablename] = $data;
       }
     }
-    if(!empty($clients)) set_transient('hoteldruid_migration_table_clients', $clients, 86400);
-    if(!empty($bookings)) set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);
-    if(!empty($years)) set_transient('hoteldruid_migration_table_years', $years, 86400);
-    if(!empty($accommodations)) set_transient('hoteldruid_migration_table_accommodations', $accommodations, 86400);
+
+    set_transient('hoteldruid_migration_table_accommodations', $accommodations, 86400);
+    set_transient('hoteldruid_migration_table_clients', $clients, 86400);
+    set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);
+    set_transient('hoteldruid_migration_table_years', $years, 86400);
+
+    if(!empty($accommodations) &! empty($clients) &! empty($bookings)) {
+      hdm_update_option('import_data', 'ready');
+    } else {
+      hdm_update_option('import_data', '');
+    }
   }
 
   $info['clients'] = count($clients);
@@ -183,33 +169,38 @@ function hdm_get_file_info($file) {
   if(!empty($years)) $info['years'] = count($years) . " (from " . min($years) . " to " . max($years) . ")";
 
   wp_cache_set('hdm_backup_file_info', $info, 'hoteldruid-migration');
-  wp_cache_set('hdm_data_clients', $clients, 'hoteldruid-migration');
-  wp_cache_set('hdm_data_bookings', $bookings, 'hoteldruid-migration');
+  // wp_cache_set('hdm_data_accommodations', $accommodations, 'hoteldruid-migration');
+  // wp_cache_set('hdm_data_clients', $clients, 'hoteldruid-migration');
+  // wp_cache_set('hdm_data_bookings', $bookings, 'hoteldruid-migration');
+  // wp_cache_set('hdm_data_years', $years, 'hoteldruid-migration');
   return $info;
 }
 
 function backup_file_info_validation($value = NULL, $request = NULL, $param = NULL) {
   $file = hdm_get_option('hoteldruid_backup_file');
+  if(empty($file)) {
+    hdm_update_option('import_data', '');
+  }
   return print_r(hdm_get_file_info($file), true);
 }
 
 function hoteldruid_backup_file_validation($value = NULL, $request = NULL, $param = NULL) {
-  if(empty($value)) return NULL;
+  if(empty($value)) $value = NULL;
   $info = hdm_get_file_info($value);
   if($info != false && $info != null) {
     if($info['mime'] != 'text/x-php') {
       hdm_admin_notice(__( "Please provide a valid php file.", 'hoteldruid-migration' ), 'error');
-      return $value;
     }
     hdm_update_option('backup_file_info', print_r($info, true));
-    return $value;
   }
-  $open_basedir=ini_get('open_basedir');
-  hdm_admin_notice(sprintf(
-    __( "Cannot read %s. Make sure you place your file in a readable directory (open_basedir=%s).", 'hoteldruid-migration' ),
-    $value,
-    $open_basedir,
-  ), 'error');
+  if($value ==  false) {
+    $open_basedir=ini_get('open_basedir');
+    hdm_admin_notice(sprintf(
+      __( "Cannot read %s. Make sure you place your file in a readable directory (open_basedir=%s).", 'hoteldruid-migration' ),
+      $value,
+      $open_basedir,
+    ), 'error');
+  }
   return $value;
 }
 
@@ -273,7 +264,7 @@ function hdm_file_info_output() {
   $info = hdm_get_file_info($file);
   $output ="";
   foreach ($info as $key => $value) {
-    $output .= "<li><strong>$key:</strong>$value</li>";
+    $output .= "<li><strong>$key:</strong> $value</li>";
   }
   $output = "<ul>$output</ul>";
   return $output;
