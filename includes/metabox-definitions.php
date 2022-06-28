@@ -1,6 +1,6 @@
 <?php
-add_filter( 'mb_settings_pages', 'hoteldruid_migration_settings_page' );
 
+add_filter( 'mb_settings_pages', 'hoteldruid_migration_settings_page' );
 function hoteldruid_migration_settings_page( $settings_pages ) {
   $settings_pages[] = [
     'menu_title' => __( 'HotelDruid migration', 'hoteldruid-migration' ),
@@ -132,6 +132,28 @@ function hoteldruid_migration_tab_bookings( $meta_boxes ) {
         'id'       => $prefix . 'hdm_list_bookings',
         'type'     => 'custom_html',
         'callback' => 'hdm_list_bookings_output',
+      ],
+    ],
+  ];
+
+  return $meta_boxes;
+}
+
+add_filter( 'rwmb_meta_boxes', 'hoteldruid_migration_product_hoteldruid_link' );
+function hoteldruid_migration_product_hoteldruid_link( $meta_boxes ) {
+  $prefix = '';
+
+  $meta_boxes[] = [
+    'title'      => __( 'Product HotelDruid link', 'hoteldruid-migration' ),
+    'id'         => 'product-hoteldruid-link',
+    'post_types' => ['product'],
+    'autosave'   => true,
+    'fields'     => [
+      [
+        'name'    => __( 'HotelDruid idappartementi', 'hoteldruid-migration' ),
+        'id'      => $prefix . 'hoteldruid_idappartementi',
+        'type'    => 'select',
+        'options' => hdm_get_idappartamenti_list(),
       ],
     ],
   ];

@@ -26,6 +26,46 @@ function hdm_import_button_values() {
     '' => __('Not ready', 'hoteldruid-migration'),
   );
 }
+function hdm_get_idappartamenti_list() {
+  $accommodations = get_transient('hoteldruid_migration_table_accommodations');
+  if(empty($accommodations)) return array(false => __('Import HodelDruid data to link product to an accommodation'));
+  $values[false] = __('Select an accommodation', 'hoteldruid');
+  foreach($accommodations as $acc) {
+    $values[$acc['idappartamenti']] = $acc['idappartamenti'];
+  }
+  return $values;
+}
+
+function hdm_get_hdappt_product_id($idappartamenti = NULL) {
+  $cache = wp_cache_get('hoteldruid_productid_' . $idappartamenti, 'hoteldruid-migration');
+  if($cache !== false) return $cache;
+  // global $wpdb;
+  $args = array(
+    'post_type' => 'product',
+    'post_status' => 'publish',
+    'posts_per_page' => -1,
+    'meta_query' => array(
+      array(
+        'key' => 'hoteldruid_idappartementi',
+        'value' => $idappartamenti,
+      )
+    )
+  );
+
+  $query = new WP_Query( $args );
+  $query = new WP_Query( $args );
+  $rows = $query->get_posts();
+  // error_log($args['meta_query'][0]['key'] . " = '" .  $args['meta_query'][0]['value'] . "' : " . count($rows) . " rows");
+  if( $query->have_posts() ) {
+    $product = $query->post;
+    $result = $product->ID;
+  } else {
+    $result = NULL;
+  }
+
+  wp_cache_set('hoteldruid_productid_' . $idappartamenti, $result, 'hoteldruid-migration');
+  return $result;
+}
 
 function import_data_field_validation($value = NULL, $request = NULL, $param = NULL) {
   $file =hdm_get_option('hoteldruid_backup_file', NULL);
@@ -115,7 +155,14 @@ function hdm_get_file_info($file) {
         break;
 
         case 'appartamenti':
-        $accommodations = flatten_array(node2array($node));
+        $items = flatten_array(node2array($node));
+        $data = [];
+        foreach ($items as $item) {
+          $key = $item['idappartamenti'];
+          $item['product_id'] = hdm_get_hdappt_product_id($key);
+          $data[$key] = $item;
+        }
+        $accommodations = $data;
         break;
 
         case 'prenota':

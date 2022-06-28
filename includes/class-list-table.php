@@ -121,6 +121,7 @@ class HDM_List_Table extends WP_List_Table {
       case 'idappartamenti':
       $columns = array (
         'idappartamenti' => __('idappartamenti', 'hoteldruid-migration'),
+        'product_id' => __('Product ID', 'hoteldruid-migration'),
         // 'numpiano' => __('numpiano', 'hoteldruid-migration'),
         'maxoccupanti' => __('max occupancy', 'hoteldruid-migration'),
         // 'numcasa' => __('numcasa', 'hoteldruid-migration'),
@@ -148,6 +149,18 @@ class HDM_List_Table extends WP_List_Table {
 
   function column_default( $item, $column_name ) {
     switch( $column_name ) {
+      case 'product_id':
+      $product_id = hdm_get_hdappt_product_id($item['idappartamenti']);
+      if(!empty($product_id)) {
+        return sprintf(
+          '<a href="%s">%s</a>',
+          get_permalink($product_id),
+          get_the_title($product_id),
+        );
+      }
+      return;
+      // $product = wc_get_product( );
+      // return hdm_get_hdappt_product_id($item['idappartamenti']);
 
       default:
       return $item[ $column_name ];
