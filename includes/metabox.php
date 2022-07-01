@@ -46,13 +46,12 @@ function hdm_get_hdappt_product_id($idappartamenti = NULL) {
     'posts_per_page' => -1,
     'meta_query' => array(
       array(
-        'key' => 'hoteldruid_idappartementi',
+        'key' => 'hoteldruid_idappartamenti',
         'value' => $idappartamenti,
       )
     )
   );
 
-  $query = new WP_Query( $args );
   $query = new WP_Query( $args );
   $rows = $query->get_posts();
   // error_log($args['meta_query'][0]['key'] . " = '" .  $args['meta_query'][0]['value'] . "' : " . count($rows) . " rows");
@@ -64,6 +63,28 @@ function hdm_get_hdappt_product_id($idappartamenti = NULL) {
   }
 
   wp_cache_set('hoteldruid_productid_' . $idappartamenti, $result, 'hoteldruid-migration');
+  return $result;
+}
+
+function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
+  if(is_array($idclienti)) {
+    $item = $idclienti;
+    $idclienti = $item['idclienti'];
+  }
+  $cache = wp_cache_get('hoteldruid_userid_' . $idclienti, 'hoteldruid-migration');
+  // if($cache !== false) return $cache;
+  $result = NULL;
+
+  if(is_email($item['email'])) {
+    $user = get_user_by('email', $item['email']);
+    if($user) {
+      $result = $user->ID;
+    }
+  }
+  // We could also store idclienti and/or compare first and last name
+  // but we need a unique email to create wp user anyway, so K.I.S.S.
+
+  wp_cache_set('hoteldruid_userid_' . $idclienti, $result, 'hoteldruid-migration');
   return $result;
 }
 

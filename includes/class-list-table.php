@@ -72,6 +72,7 @@ class HDM_List_Table extends WP_List_Table {
       case 'idclienti':
       $columns = array(
         'idclienti' => __('idclienti', 'hoteldruid-migration'),
+        'user_id' => __('WP User', 'hoteldruid-migration'),
         'displayname' => __('name', 'hoteldruid-migration'),
         // 'cognome' => __('cognome', 'hoteldruid-migration'),
         // 'nome' => __('nome', 'hoteldruid-migration'),
@@ -157,6 +158,24 @@ class HDM_List_Table extends WP_List_Table {
           get_permalink($item['product_id']),
           get_the_title($item['product_id']),
         );
+      }
+      return;
+
+      case 'user_id':
+      // $user_id = (empty($item['user_id'])) ? hdm_get_hdclient_user_id($item['idclienti']) : $item['user_id'];
+      $user_id = hdm_get_hdclient_user_id($item);
+      if(!empty($user_id)) {
+        if(is_integer($user_id)) {
+          $userdata = get_userdata($user_id);
+          $display_name = (empty($userdata->display_name)) ? $item->name : $userdata->display_name;
+          return sprintf(
+            '<a href="%s">%s</a>',
+            get_edit_profile_url($user_id),
+            $display_name,
+          );
+        } else {
+          return $user_id;
+        }
       }
       return;
 
