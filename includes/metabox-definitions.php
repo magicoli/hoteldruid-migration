@@ -2,7 +2,7 @@
 
 add_filter( 'mb_settings_pages', 'hoteldruid_migration_settings_page' );
 function hoteldruid_migration_settings_page( $settings_pages ) {
-  $settings_pages[] = [
+  $settings_pages['hoteldruid-migration'] = [
     'menu_title' => __( 'HotelDruid migration', 'hoteldruid-migration' ),
     'id'         => 'hoteldruid-migration',
     'position'   => 25,
@@ -10,14 +10,23 @@ function hoteldruid_migration_settings_page( $settings_pages ) {
     'capability' => 'manage_woocommerce',
     'style'      => 'no-boxes',
     'columns'    => 1,
-    'tabs'       => [
+    // 'tabs'       => [
+    //   'settings'       => 'Settings',
+    //   'accommodations' => 'Accomodations',
+    //   'clients'        => 'Clients',
+    //   'bookings'       => 'Bookings',
+    // ],
+    'icon_url'   => 'dashicons-admin-generic',
+  ];
+
+  if(!empty(hdm_get_option('import_data'))) {
+    $settings_pages['hoteldruid-migration']['tabs'] = [
       'settings'       => 'Settings',
       'accommodations' => 'Accomodations',
       'clients'        => 'Clients',
       'bookings'       => 'Bookings',
-    ],
-    'icon_url'   => 'dashicons-admin-generic',
-  ];
+    ];
+  }
 
   return $settings_pages;
 }
@@ -76,6 +85,8 @@ function hoteldruid_migration_settings_fields( $meta_boxes ) {
   return $meta_boxes;
 }
 
+
+if(!empty(hdm_get_option('import_data')))
 add_filter( 'rwmb_meta_boxes', 'hoteldruid_migration_tab_accommodations' );
 function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
   $prefix = '';
@@ -97,6 +108,7 @@ function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
   return $meta_boxes;
 }
 
+if(!empty(hdm_get_option('import_data')))
 add_filter( 'rwmb_meta_boxes', 'hoteldruid_migration_tab_clients' );
 function hoteldruid_migration_tab_clients( $meta_boxes ) {
   $prefix = '';
@@ -118,6 +130,7 @@ function hoteldruid_migration_tab_clients( $meta_boxes ) {
   return $meta_boxes;
 }
 
+if(!empty(hdm_get_option('import_data')))
 add_filter( 'rwmb_meta_boxes', 'hoteldruid_migration_tab_bookings' );
 function hoteldruid_migration_tab_bookings( $meta_boxes ) {
   $prefix = '';

@@ -1,8 +1,10 @@
 <?php
 
 function hdm_get_option( $option, $default = false ) {
-  $value = rwmb_meta( $option, ['object_type' => 'setting'], 'hoteldruid-migration' );
-  if($value === NULL) return $default;
+  $options = get_option('hoteldruid-migration');
+  $value = (isset($options[$option])) ? $options[$option] : $default;
+  // $value = rwmb_meta( $option, ['object_type' => 'setting'], 'hoteldruid-migration' );
+  // if($value === NULL) return $default;
   return $value;
 }
 

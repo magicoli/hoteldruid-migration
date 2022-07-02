@@ -102,6 +102,8 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
   if($value == 'process') {
     error_log('Processing import file');
     foreach($clients as $key => $item) {
+      if(empty($item['email'])) continue;
+      if(preg_match('/(airbnb.com|booking.com)$/', $item['email'])) continue;
       $user = get_user_by('email', $item['email']);
       if ( ! $user ) {
         // no wp user yet, create one if import_data = 'process'
@@ -127,18 +129,10 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
           // 'admin_color'           => '',   //(string) Admin color scheme for the user. Default 'fresh'.
           // 'use_ssl'               => '',   //(bool) Whether the user should always access the admin over https. Default false.
           // 'user_registered'       => '',   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
-          // 'show_admin_bar_front'  => '',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
-          // 'role'                  => '',   //(string) User's role.
-          // 'locale'                => '',   //(string) User's locale. Default empty.
+          'show_admin_bar_front'  => false,   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
+          'role'                  => 'customer',   //(string) User's role.
+          'locale'                => $item['lingua'],   //(string) User's locale. Default empty.
         );
-
-        /**
-         * here we must create the user
-         */
-
-        /**
-         * update user meta if not done yet
-         */
 
         if ( empty($item['firstname']) || empty($item['lastname'])) {
           $billing_company = $item['displayname'];
@@ -150,6 +144,7 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
           $billing_company = NULL;
         }
         $usermeta = array(
+          'hoteldruid_idclienti' => $item['idclienti'],
           'billing_first_name' => $billing_last_name,
           'billing_last_name' => $billing_first_name,
           'billing_company' => $billing_company,
@@ -162,7 +157,12 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
           'billing_email' => $item['email'],
         );
 
-        error_log('will create user ' . print_r($userdata, true) . "with meta " . print_r($usermeta, true));
+        $user_id = wp_insert_user( $userdata );
+        if($user_id) {
+          foreach ($usermeta as $meta_key => $meta_value) {
+            update_user_meta($user_id, $meta_key, $meta_value);
+          }
+        }
       }
     }
 
@@ -204,6 +204,45 @@ function hdm_get_file_info($file) {
     $clients = array();
     $bookings = array();
     $accommodations = array();
+    $countrycodes = array(
+      'United States Of America' => 'US',
+      '0' => '',
+      'Guadeloupe' => 'GP',
+      'France' => 'FR',
+      'Belgium' => 'BE',
+      'Switzerland' => 'CH',
+      'Martinique' => 'MQ',
+      'United Kingdom' => 'MF',
+      'Czech Republic' => 'CZ',
+      'Belgique' => 'BE',
+      'Royaume Uni' => 'GB',
+      'Sweden' => 'SE',
+      'Germany' => 'DE',
+      "C\xc3\xb4te D'Ivoire" => 'CI',
+      'Slovenia' => 'SI',
+      'Canada' => 'CA',
+      'Netherlands' => 'NL',
+      'Italy' => 'IT',
+      'Cz' => 'CZ',
+      'Fr' => 'FR',
+      'Us' => 'US',
+      'Ca' => 'CA',
+      'Dm' => 'DM',
+      'Luxembourg' => 'LU',
+      'Ch' => 'CH',
+      'Se' => 'SE',
+      'Poland' => 'PL',
+      'Austria' => 'AT',
+      'Ro' => 'RO',
+      'Romania' => 'RO',
+      'Saint Martin' => 'SF',
+      'Pl' => 'PL',
+    );
+    $languagecodes = array(
+      'en' => 'en',
+      'fr' => 'fr_FR',
+      'de' => 'de_DE',
+    );
     foreach( $dom->getElementsByTagName('tabella') as $node) {
       $tablename = $node->getElementsByTagName('nometabella')->item(0)->nodeValue;
       // error_log("tablename " . $tablename);
@@ -221,23 +260,28 @@ function hdm_get_file_info($file) {
           if(preg_match('/^(0590|0690|\\+590|00590)/', $phone)) $item['country'] = "Guadeloupe";
           else if(preg_match('/^(0596|0696|\\+596|00596)/', $phone)) $item['country'] = "Martinique";
           else if(preg_match('/^(\\+|00)31/', $phone)) $item['country'] = "Netherlands";
-          else if(preg_match('/^(\\+|00)32/', $phone)) $item['country'] = "Belgium";
+          else if(preg_match('/^(\\+|00)32/', $phone)) $item['country'] = "Belgique";
           else if(preg_match('/^(\\+|00)33/', $phone)) $item['country'] = "France";
-          else if(preg_match('/^(\\+|00)44/', $phone)) $item['country'] = "United Kingdom";
+          else if(preg_match('/^(\\+|00)44/', $phone)) $item['country'] = "Royaume Uni";
           else if(preg_match('/^(\\+|00)49/', $phone)) $item['country'] = "Germany";
+          else if(preg_match('/\.de$/', $item['email'])) $item['country'] = "Germany";
+          else if(preg_match('/\.be$/', $item['email'])) $item['country'] = "Belgique";
           else if(preg_match('/^0[167][0-9]{8}/', $phone)) $item['country'] = "France";
           else if(!empty($item['country'])) $item['country'] = $item['country'];
           else if(!empty($item['nazionalita'])) $item['country'] = $item['nazionalita'];
           else if(!empty($item['nazionenascita'])) $item['country'] = $item['nazionenascita'];
           $item['phone'] = join(', ', array_filter([ $item['telefono'], $item['telefono2'], $item['telefono3'] ]));
           $emails = [ $item['email'], $item['email2'], $item['email3'] ];
-          $emails = preg_replace('/.*@(guest.airbnb.com|guest.booking.com)/', '', $emails);
+          $emails = preg_replace('/.*@(guest.airbnb.com|reply.airbnb.com|guest.booking.com)/', '', $emails);
           $item['email'] = join(', ', array_filter( $emails ));
           unset($item['telefono'], $item['telefono2'], $item['telefono3']);
           $item['lastname'] = trim($item[ 'cognome' ]);
           $item['firstname'] = trim($item[ 'nome' ]);
           $item['displayname'] = trim($item[ 'firstname' ] . ' ' . $item[ 'lastname' ]);
           $item['street'] = preg_replace('/ Rue$/', '', trim($item[ 'numcivico' ] . ' ' . $item[ 'via' ]));
+
+          if(isset($countrycodes[$item['country']])) $item['country'] = $countrycodes[$item['country']];
+          if(isset($languagecodes[$item['lingua']])) $item['lingua'] = $languagecodes[$item['lingua']];
 
           if(isset($data[$key])) {
             $item = array_merge($data[$key], array_filter($item));
