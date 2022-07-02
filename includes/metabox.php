@@ -91,7 +91,7 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
 }
 
 function import_data_field_validation($value = NULL, $request = NULL, $param = NULL) {
-  $file =hdm_get_option('hoteldruid_backup_file', NULL);
+  $file = hdm_get_option('hoteldruid_backup_file', NULL);
   $clients = get_transient('hoteldruid_migration_table_clients');
   $bookings = get_transient('hoteldruid_migration_table_bookings');
   $accommodations = get_transient('hoteldruid_migration_table_accommodations');
@@ -113,7 +113,7 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
         )), true);
         $userdata = array(
           // 'ID'                    => 0,    //(int) User ID. If supplied, the user will be updated.
-          // 'user_pass'             => '',   //(string) The plain-text user password.
+          'user_pass'             => NULL,   //(string) The plain-text user password.
           'user_login'            => $user_login,   //(string) The user's login username.
           // 'user_nicename'         => '',   //(string) The URL-friendly user name.
           // 'user_url'              => '',   //(string) The user URL.
