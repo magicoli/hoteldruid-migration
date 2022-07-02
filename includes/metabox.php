@@ -26,6 +26,7 @@ function hdm_import_button_values() {
     '' => __('Not ready', 'hoteldruid-migration'),
   );
 }
+
 function hdm_get_idappartamenti_list() {
   $accommodations = get_transient('hoteldruid_migration_table_accommodations');
   if(empty($accommodations)) return array(false => __('Import HodelDruid data to link product to an accommodation'));
@@ -79,6 +80,7 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
     $user = get_user_by('email', $item['email']);
     if($user) {
       $result = $user->ID;
+      $username = (empty($item['displayname'])) ? preg_replace('/@.*/', '', $item['email']) : $item['displayname'];
     }
   }
   // We could also store idclienti and/or compare first and last name
@@ -145,7 +147,10 @@ function hdm_get_file_info($file) {
         case 'clienti':
         $items = flatten_array(node2array($node));
         $data = [];
-        foreach ($items as $key => $item) {
+        foreach ($items as $item) {
+          $key = trim($item['idclienti']);
+          if(empty($key)) continue; // should not happen, just to be sure
+
           $phone = preg_replace('/[^0-9+]/', '', $item['telefono']);
           $item['country'] = $item['nazione'];
           if(preg_match('/^(0590|0690|\\+590|00590)/', $phone)) $item['country'] = "Guadeloupe";
@@ -169,10 +174,11 @@ function hdm_get_file_info($file) {
           $item['displayname'] = trim($item[ 'firstname' ] . ' ' . $item[ 'lastname' ]);
           $item['street'] = preg_replace('/ Rue$/', '', trim($item[ 'numcivico' ] . ' ' . $item[ 'via' ]));
 
-          $items[$key] = $item;
+          if(isset($data[$key])) $item = array_merge($data[$key], $item);
+          $data[$key] = $item;
         }
-
-        $clients = $items;
+        $clients = $data;
+        ksort($clients);
         break;
 
         case 'appartamenti':
