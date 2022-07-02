@@ -29,6 +29,7 @@ class HDM_List_Table extends WP_List_Table {
     switch ($keys[0]) {
       case 'idprenota':
       $columns = array (
+        'key' => __('key', 'hoteldruid-migration'),
         'idprenota' => __('idprenota', 'hoteldruid-migration'),
         'idclienti' => __('idclienti', 'hoteldruid-migration'),
         'idappartamenti' => __('idappartamenti', 'hoteldruid-migration'),
@@ -151,6 +152,20 @@ class HDM_List_Table extends WP_List_Table {
 
   function column_default( $item, $column_name ) {
     switch( $column_name ) {
+      // case 'idclienti':
+      // if(isset($item['idprenota'])) {
+      //   // todo return link to wp user if set
+      //   return "client " . $item['idclienti'];
+      // }
+      // return $item['idclienti'];
+      
+      case 'idprenota':
+        return sprintf(
+          '%s/%s',
+          $item['year'],
+          $item['idprenota'],
+        );
+
       case 'product_id':
       // $product_id = hdm_get_hdappt_product_id($item['idappartamenti']);
       if(!empty($item['product_id']) && is_integer($item['product_id'])) {

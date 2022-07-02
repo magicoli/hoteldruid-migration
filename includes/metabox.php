@@ -79,8 +79,8 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
   if(is_email($item['email'])) {
     $user = get_user_by('email', $item['email']);
     if($user) {
+      // there is a wp user
       $result = $user->ID;
-      $username = (empty($item['displayname'])) ? preg_replace('/@.*/', '', $item['email']) : $item['displayname'];
     }
   }
   // We could also store idclienti and/or compare first and last name
@@ -101,6 +101,71 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
 
   if($value == 'process') {
     error_log('Processing import file');
+    foreach($clients as $key => $item) {
+      $user = get_user_by('email', $item['email']);
+      if ( ! $user ) {
+        // no wp user yet, create one if import_data = 'process'
+        $username = (empty($item['displayname'])) ? preg_replace('/@.*/', '', $item['email']) : $item['displayname'];
+        $user_login = sanitize_user(preg_replace('/ /', '.', strtolower(
+          $username
+        )), true);
+        $userdata = array(
+          // 'ID'                    => 0,    //(int) User ID. If supplied, the user will be updated.
+          // 'user_pass'             => '',   //(string) The plain-text user password.
+          'user_login'            => $user_login,   //(string) The user's login username.
+          // 'user_nicename'         => '',   //(string) The URL-friendly user name.
+          // 'user_url'              => '',   //(string) The user URL.
+          'user_email'            => $item['email'],   //(string) The user email address.
+          'display_name'          => $item['displayname'],   //(string) The user's display name. Default is the user's username.
+          // 'nickname'              => '',   //(string) The user's nickname. Default is the user's username.
+          'first_name'            => $item['firstname'],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
+          'last_name'             => $item['lastname'],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
+          // 'description'           => '',   //(string) The user's biographical description.
+          // 'rich_editing'          => '',   //(string|bool) Whether to enable the rich-editor for the user. False if not empty.
+          // 'syntax_highlighting'   => '',   //(string|bool) Whether to enable the rich code editor for the user. False if not empty.
+          // 'comment_shortcuts'     => '',   //(string|bool) Whether to enable comment moderation keyboard shortcuts for the user. Default false.
+          // 'admin_color'           => '',   //(string) Admin color scheme for the user. Default 'fresh'.
+          // 'use_ssl'               => '',   //(bool) Whether the user should always access the admin over https. Default false.
+          // 'user_registered'       => '',   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
+          // 'show_admin_bar_front'  => '',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
+          // 'role'                  => '',   //(string) User's role.
+          // 'locale'                => '',   //(string) User's locale. Default empty.
+        );
+
+        /**
+         * here we must create the user
+         */
+
+        /**
+         * update user meta if not done yet
+         */
+
+        if ( empty($item['firstname']) || empty($item['lastname'])) {
+          $billing_company = $item['displayname'];
+          $billing_first_name = NULL;
+          $billing_last_name = NULL;
+        } else {
+          $billing_first_name = $item['firstname'];
+          $billing_last_name = $item['lastname'];
+          $billing_company = NULL;
+        }
+        $usermeta = array(
+          'billing_first_name' => $billing_last_name,
+          'billing_last_name' => $billing_first_name,
+          'billing_company' => $billing_company,
+          'billing_address_1' => $item['street'],
+          'billing_city' => $item['citta'],
+          'billing_postcode' => $item['cap'],
+          'billing_state' => $item['regione'],
+          'billing_country' => $item['country'],
+          'billing_phone' => $item['phone'],
+          'billing_email' => $item['email'],
+        );
+
+        error_log('will create user ' . print_r($userdata, true) . "with meta " . print_r($usermeta, true));
+      }
+    }
+
     // do some stuff and return 'processed' if succeeded, 'ready' if failed
   }
   return 'ready';
@@ -174,11 +239,12 @@ function hdm_get_file_info($file) {
           $item['displayname'] = trim($item[ 'firstname' ] . ' ' . $item[ 'lastname' ]);
           $item['street'] = preg_replace('/ Rue$/', '', trim($item[ 'numcivico' ] . ' ' . $item[ 'via' ]));
 
-          if(isset($data[$key])) $item = array_merge($data[$key], $item);
+          if(isset($data[$key])) {
+            $item = array_merge($data[$key], array_filter($item));
+          }
           $data[$key] = $item;
         }
         $clients = $data;
-        ksort($clients);
         break;
 
         case 'appartamenti':
@@ -193,10 +259,14 @@ function hdm_get_file_info($file) {
         break;
 
         case 'prenota':
+        $data = [];
         $year=preg_replace('/.*([0-9]{4})$/', '$1', $tablename);
         $items = flatten_array(node2array($node));
         foreach ($items as $key => $item) {
-          $item['idprenota'] = $year * 10000 + $item['idprenota'];
+          $key = $year * 10000 + $item['idprenota'];
+          $item['key'] = $key;
+          $item['year'] = $year;
+          // $item['idprenota'] = $year * 10000 + $item['idprenota'];
           $stamp_arrival = strtotime("$year-01-01 +" . $item['iddatainizio'] . " days -1 day");
           $stamp_departure = strtotime("$year-01-01 +" . $item['iddatafine'] . " days");
           $item['arrival'] = date('d-m-Y', $stamp_arrival);
@@ -212,9 +282,10 @@ function hdm_get_file_info($file) {
             $item['children'] = preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
           }
 
-          $data[] = $item;
+          $data[$key] = $item;
         }
         if(!empty($data)) {
+          ksort($data);
           $bookings = array_merge($bookings, $data);
           $years[] = $year;
         }
@@ -224,6 +295,8 @@ function hdm_get_file_info($file) {
         // $tables[$tablename] = $data;
       }
     }
+    ksort($clients, SORT_NUMERIC);
+    ksort($bookings, SORT_NUMERIC);
 
     set_transient('hoteldruid_migration_table_accommodations', $accommodations, 86400);
     set_transient('hoteldruid_migration_table_clients', $clients, 86400);
