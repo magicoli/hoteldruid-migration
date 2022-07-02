@@ -75,19 +75,30 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
   $cache = wp_cache_get('hoteldruid_userid_' . $idclienti, 'hoteldruid-migration');
   // if($cache !== false) return $cache;
   $result = NULL;
-
-  if(is_email($item['email'])) {
-    $user = get_user_by('email', $item['email']);
-    if($user) {
-      // there is a wp user
-      $result = $user->ID;
+  $user = false;
+  if(isset($item['email'])) {
+    $user_login = hdm_create_user_login($item);
+    if(is_email($item['email'])) {
+      $user = get_user_by('email', $item['email']);
+    } else if(!empty($user_login)) {
+      $user = get_user_by('login', $user_login);
     }
   }
+  if($user) $result = $user->ID;
+
   // We could also store idclienti and/or compare first and last name
   // but we need a unique email to create wp user anyway, so K.I.S.S.
 
   wp_cache_set('hoteldruid_userid_' . $idclienti, $result, 'hoteldruid-migration');
   return $result;
+}
+
+function hdm_create_user_login($item) {
+  $username = (empty($item['displayname'])) ? preg_replace('/@.*/', '', $item['email']) : $item['displayname'];
+  $username = trim($username);
+  if(empty($username)) return NULL;
+  $user_login = sanitize_user(preg_replace('/ /', '.', strtolower( $username )), true);
+  return $user_login;
 }
 
 function import_data_field_validation($value = NULL, $request = NULL, $param = NULL) {
@@ -102,15 +113,20 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
   if($value == 'process') {
     error_log('Processing import file');
     foreach($clients as $key => $item) {
-      if(empty($item['email'])) continue;
-      if(preg_match('/(airbnb.com|booking.com)$/', $item['email'])) continue;
-      $user = get_user_by('email', $item['email']);
-      if ( ! $user ) {
+      $user = false;
+      if(preg_match('/(airbnb.com|booking.com)$/', $item['email'])) $item['email'] = NULL;
+      $user_login = hdm_create_user_login($item);
+
+      if(!empty($item['email'])) {
+        $user = get_user_by('email', $item['email']);
+      } else if(!empty($user_login)) {
+        $user = get_user_by('user_login', $user_login);
+      }
+
+      if ( $user ) {
+        $user_id = $user->ID;
+      } else {
         // no wp user yet, create one if import_data = 'process'
-        $username = (empty($item['displayname'])) ? preg_replace('/@.*/', '', $item['email']) : $item['displayname'];
-        $user_login = sanitize_user(preg_replace('/ /', '.', strtolower(
-          $username
-        )), true);
         $userdata = array(
           // 'ID'                    => 0,    //(int) User ID. If supplied, the user will be updated.
           'user_pass'             => NULL,   //(string) The plain-text user password.
@@ -133,32 +149,32 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
           'role'                  => 'customer',   //(string) User's role.
           'locale'                => $item['lingua'],   //(string) User's locale. Default empty.
         );
-
-        if ( empty($item['firstname']) || empty($item['lastname'])) {
-          $billing_company = $item['displayname'];
-          $billing_first_name = NULL;
-          $billing_last_name = NULL;
-        } else {
-          $billing_first_name = $item['firstname'];
-          $billing_last_name = $item['lastname'];
-          $billing_company = NULL;
-        }
-        $usermeta = array(
-          'hoteldruid_idclienti' => $item['idclienti'],
-          'billing_first_name' => $billing_last_name,
-          'billing_last_name' => $billing_first_name,
-          'billing_company' => $billing_company,
-          'billing_address_1' => $item['street'],
-          'billing_city' => $item['citta'],
-          'billing_postcode' => $item['cap'],
-          'billing_state' => $item['regione'],
-          'billing_country' => $item['country'],
-          'billing_phone' => $item['phone'],
-          'billing_email' => $item['email'],
-        );
-
         $user_id = wp_insert_user( $userdata );
+
         if($user_id) {
+          if ( empty($item['firstname']) || empty($item['lastname'])) {
+            $billing_company = $item['displayname'];
+            $billing_first_name = NULL;
+            $billing_last_name = NULL;
+          } else {
+            $billing_first_name = $item['firstname'];
+            $billing_last_name = $item['lastname'];
+            $billing_company = NULL;
+          }
+          $usermeta = array(
+            'hoteldruid_idclienti' => $item['idclienti'],
+            'billing_first_name' => $billing_first_name,
+            'billing_last_name' => $billing_last_name,
+            'billing_company' => $billing_company,
+            'billing_address_1' => $item['street'],
+            'billing_city' => $item['citta'],
+            'billing_postcode' => $item['cap'],
+            'billing_state' => $item['regione'],
+            'billing_country' => $item['country'],
+            'billing_phone' => $item['phone'],
+            'billing_email' => $item['email'],
+          );
+
           foreach ($usermeta as $meta_key => $meta_value) {
             update_user_meta($user_id, $meta_key, $meta_value);
           }
