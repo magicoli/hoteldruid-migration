@@ -237,9 +237,9 @@ function hdm_get_file_info($file) {
     }
   }
 
-  $info['clients'] = count($clients);
-  $info['bookings'] = count($bookings);
-  $info['accommodations'] = count($accommodations);
+  if(is_array($clients)) $info['clients'] = count($clients);
+  if(is_array($bookings)) $info['bookings'] = count($bookings);
+  if(is_array($accommodations)) $info['accommodations'] = count($accommodations);
   if(!empty($years)) $info['years'] = count($years) . " (from " . min($years) . " to " . max($years) . ")";
 
   wp_cache_set('hdm_backup_file_info', $info, 'hoteldruid-migration');

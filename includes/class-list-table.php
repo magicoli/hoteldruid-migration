@@ -21,7 +21,8 @@ class HDM_List_Table extends WP_List_Table {
 
   function get_columns() {
     $rows = $this->data;
-    if(count($rows) == 0) return [ 'empty' => __('Empty table') ];
+    if(!is_array($rows)) return [ 'error' => __('Not an array') ];
+    if(empty($rows)) return [ 'error' => __('Empty table') ];
 
     // $first_row = ;
     $keys = array_keys(array_shift($rows));
