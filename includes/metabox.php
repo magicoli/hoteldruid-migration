@@ -358,6 +358,11 @@ function hdm_get_file_info($file) {
     ksort($clients, SORT_NUMERIC);
     ksort($bookings, SORT_NUMERIC);
 
+    // Adding wp user info to bookings
+    foreach ($bookings as $key => $booking) {
+      $bookings[$key]['user_id'] = hdm_get_hdclient_user_id($booking['idclienti']);
+    }
+
     set_transient('hoteldruid_migration_table_accommodations', $accommodations, 86400);
     set_transient('hoteldruid_migration_table_clients', $clients, 86400);
     set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);

@@ -31,8 +31,9 @@ class HDM_List_Table extends WP_List_Table {
       $columns = array (
         'key' => __('key', 'hoteldruid-migration'),
         'idprenota' => __('idprenota', 'hoteldruid-migration'),
-        'idclienti' => __('idclienti', 'hoteldruid-migration'),
-        'user_id' => __('WP User', 'hoteldruid-migration'),
+        'customer' => __('Customer', 'hoteldruid-migration'),
+        // 'idclienti' => __('idclienti', 'hoteldruid-migration'),
+        // 'user_id' => __('WP User', 'hoteldruid-migration'),
         'idappartamenti' => __('idappartamenti', 'hoteldruid-migration'),
         // 'iddatainizio' => __('iddatainizio', 'hoteldruid-migration'),
         // 'iddatafine' => __('iddatafine', 'hoteldruid-migration'),
@@ -74,8 +75,9 @@ class HDM_List_Table extends WP_List_Table {
 
       case 'idclienti':
       $columns = array(
-        'idclienti' => __('idclienti', 'hoteldruid-migration'),
-        'user_id' => __('WP User', 'hoteldruid-migration'),
+        'customer' => __('Customer', 'hoteldruid-migration'),
+        // 'idclienti' => __('idclienti', 'hoteldruid-migration'),
+        // 'user_id' => __('WP User', 'hoteldruid-migration'),
         'displayname' => __('name', 'hoteldruid-migration'),
         // 'cognome' => __('cognome', 'hoteldruid-migration'),
         // 'nome' => __('nome', 'hoteldruid-migration'),
@@ -178,23 +180,23 @@ class HDM_List_Table extends WP_List_Table {
       }
       return;
 
-      case 'user_id':
+      case 'customer':
       // $user_id = (empty($item['user_id'])) ? hdm_get_hdclient_user_id($item['idclienti']) : $item['user_id'];
-      $user_id = hdm_get_hdclient_user_id($item);
-      if(!empty($user_id)) {
-        if(is_integer($user_id)) {
+      if(empty($item['user_id'])) return NULL;
+      $user_id = $item['user_id'];
+      // if(!empty($user_id)) {
+        // if(is_integer($user_id)) {
           $userdata = get_userdata($user_id);
           $display_name = (empty($userdata->display_name)) ? $item->name : $userdata->display_name;
           return sprintf(
-            '<a href="%s">%s</a>',
+            ' <a href="%s">%s</a> (%s)',
             get_edit_user_link($user_id) . "?user_id=$user_id",
             $display_name,
+            $item['idclienti'],
           );
-        } else {
-          return $user_id;
-        }
-      }
-      return;
+        // }
+      // }
+      return NULL; #$item['idclienti'];
 
       default:
       return $item[ $column_name ];
