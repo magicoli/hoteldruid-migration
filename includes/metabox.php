@@ -73,7 +73,8 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
     $idclienti = $item['idclienti'];
   }
   $cache = wp_cache_get('hoteldruid_userid_' . $idclienti, 'hoteldruid-migration');
-  // if($cache !== false) return $cache;
+  if($cache !== false) return $cache;
+
   $result = NULL;
   $user = false;
   if(isset($item['email'])) {
