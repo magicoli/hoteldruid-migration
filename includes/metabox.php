@@ -77,8 +77,9 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
 
   $result = NULL;
   $user = false;
+
   if(isset($item['email'])) {
-    $user_login = hdm_create_user_login($item);
+    $user_login = (is_array($item)) ? hdm_create_user_login($item) : NULL;
     if(is_email($item['email'])) {
       $user = get_user_by('email', $item['email']);
     } else if(!empty($user_login)) {
@@ -87,9 +88,9 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
   }
   if($user) $result = $user->ID;
 
+
   // We could also store idclienti and/or compare first and last name
   // but we need a unique email to create wp user anyway, so K.I.S.S.
-
   wp_cache_set('hoteldruid_userid_' . $idclienti, $result, 'hoteldruid-migration');
   return $result;
 }
@@ -131,14 +132,14 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
         $userdata = array(
           // 'ID'                    => 0,    //(int) User ID. If supplied, the user will be updated.
           'user_pass'             => NULL,   //(string) The plain-text user password.
-          'user_login'            => $user_login,   //(string) The user's login username.
+          'user_login'            => (!empty($user->user_login)) ? $user->user_login : $user_login,   //(string) The user's login username.
           // 'user_nicename'         => '',   //(string) The URL-friendly user name.
           // 'user_url'              => '',   //(string) The user URL.
           'user_email'            => $item['email'],   //(string) The user email address.
-          'display_name'          => $item['displayname'],   //(string) The user's display name. Default is the user's username.
+          'display_name'          => (!empty($user->display_name)) ? $user->display_name : $item['displayname'],   //(string) The user's display name. Default is the user's username.
           // 'nickname'              => '',   //(string) The user's nickname. Default is the user's username.
-          'first_name'            => $item['firstname'],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
-          'last_name'             => $item['lastname'],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
+          'first_name'            => (!empty($user->first_name)) ? $user->first_name : $item['firstname'],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
+          'last_name'             => (!empty($user->last_name)) ? $user->last_name : $item['lastname'],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
           // 'description'           => '',   //(string) The user's biographical description.
           // 'rich_editing'          => '',   //(string|bool) Whether to enable the rich-editor for the user. False if not empty.
           // 'syntax_highlighting'   => '',   //(string|bool) Whether to enable the rich code editor for the user. False if not empty.
@@ -148,7 +149,7 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
           // 'user_registered'       => '',   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
           'show_admin_bar_front'  => false,   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
           'role'                  => 'customer',   //(string) User's role.
-          'locale'                => $item['lingua'],   //(string) User's locale. Default empty.
+          'locale'                => (!empty($user->locale)) ? $user->locale : $item['lingua'],   //(string) User's locale. Default empty.
         );
         $user_id = wp_insert_user( $userdata );
 
@@ -162,6 +163,7 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
             $billing_last_name = $item['lastname'];
             $billing_company = NULL;
           }
+          // error_log(print_r(get_user_meta($user_id), true));
           $usermeta = array(
             'hoteldruid_idclienti' => $item['idclienti'],
             'billing_first_name' => $billing_first_name,
@@ -207,9 +209,11 @@ function hdm_get_file_info($file) {
   $clients = get_transient('hoteldruid_migration_table_clients');
   $bookings = get_transient('hoteldruid_migration_table_bookings');
   $accommodations = get_transient('hoteldruid_migration_table_accommodations');
+  $orders = get_transient('hoteldruid_migration_table_orders');
   $years = get_transient('hoteldruid_migration_table_years');
 
-  if ( $clients == false || $bookings == false || $accommodations == false ) {
+  if ( $clients == false || $bookings == false || $accommodations == false || $orders == false ) {
+    error_log('Analizing import file ' . $file);
     libxml_use_internal_errors(true);
     $dom = new DOMDocument;
     // $dom->loadHTMLFile($file);
@@ -221,6 +225,8 @@ function hdm_get_file_info($file) {
     $clients = array();
     $bookings = array();
     $accommodations = array();
+    $orders = array();
+
     $countrycodes = array(
       'United States Of America' => 'US',
       '0' => '',
@@ -303,6 +309,10 @@ function hdm_get_file_info($file) {
           if(isset($data[$key])) {
             $item = array_merge($data[$key], array_filter($item));
           }
+          if(!isset($item['user_id'])) {
+            $item['user_id'] = hdm_get_hdclient_user_id($key, $item);
+          }
+
           $data[$key] = $item;
         }
         $clients = $data;
@@ -328,11 +338,11 @@ function hdm_get_file_info($file) {
           $item['key'] = $key;
           $item['year'] = $year;
           // $item['idprenota'] = $year * 10000 + $item['idprenota'];
-          $stamp_arrival = strtotime("$year-01-01 +" . $item['iddatainizio'] . " days -1 day");
-          $stamp_departure = strtotime("$year-01-01 +" . $item['iddatafine'] . " days");
-          $item['arrival'] = date('d-m-Y', $stamp_arrival);
-          $item['departure'] = date('d-m-Y', $stamp_departure);
-          $item['nights'] = ( $stamp_departure - $stamp_arrival ) / 86400;
+          $item['stamp_in'] = strtotime("$year-01-01 +" . $item['iddatainizio'] . " days -1 day");
+          $item['stamp_out'] = strtotime("$year-01-01 +" . $item['iddatafine'] . " days");
+          $item['arrival'] = date('d-m-Y', $item['stamp_in']);
+          $item['departure'] = date('d-m-Y', $item['stamp_out']);
+          $item['nights'] = ( $item['stamp_out'] - $item['stamp_in'] ) / 86400;
           // $item['nights'] = NULL;
 
           if(empty($item['cat_persone']) || !preg_match('/(child|enfant)/', $item['cat_persone'])) {
@@ -342,7 +352,23 @@ function hdm_get_file_info($file) {
             $item['adults'] = preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $item['cat_persone']);
             $item['children'] = preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $item['cat_persone']);
           }
+          // $item['user_id'] = hdm_get_hdclient_user_id($item['idclienti']);
 
+          $item['related'] = $item['key'];
+          // $order_key = $item['key'];
+          foreach($data as $pkey => $previous) {
+            if ($item['idclienti'] == $previous['idclienti']) {
+              if (
+                ($item['stamp_in'] >= $previous['stamp_in'] && $item['stamp_in'] <= $previous['stamp_out'])
+                || ($item['stamp_out'] >= $previous['stamp_in'] && $item['stamp_out'] <= $previous['stamp_out'])
+              ) {
+                $item['related'] = (empty($previous['related'])) ? $previous['key'] : $previous['related'];
+                break;
+              }
+            }
+          }
+          $order_key = $item['related'];
+          $orders[$order_key][] = $item;
           $data[$key] = $item;
         }
         if(!empty($data)) {
@@ -368,6 +394,7 @@ function hdm_get_file_info($file) {
     set_transient('hoteldruid_migration_table_clients', $clients, 86400);
     set_transient('hoteldruid_migration_table_bookings', $bookings, 86400);
     set_transient('hoteldruid_migration_table_years', $years, 86400);
+    set_transient('hoteldruid_migration_table_orders', $orders, 86400);
 
     if(!empty($accommodations) &! empty($clients) &! empty($bookings)) {
       hdm_update_option('import_data', 'ready');

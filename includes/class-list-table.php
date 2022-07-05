@@ -29,8 +29,9 @@ class HDM_List_Table extends WP_List_Table {
     switch ($keys[0]) {
       case 'idprenota':
       $columns = array (
-        'key' => __('key', 'hoteldruid-migration'),
+        // 'key' => __('key', 'hoteldruid-migration'),
         'idprenota' => __('idprenota', 'hoteldruid-migration'),
+        'related' => __('order key', 'hoteldruid-migration'),
         'customer' => __('Customer', 'hoteldruid-migration'),
         // 'idclienti' => __('idclienti', 'hoteldruid-migration'),
         // 'user_id' => __('WP User', 'hoteldruid-migration'),
