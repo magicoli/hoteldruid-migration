@@ -27,8 +27,8 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 0.1.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'HMIGR_MIGRATION_VERSION', '0.1.0' );
-define( 'HMIGR_PLUGIN_NAME', 'hoteldruid-migration' );
+define( 'HOTELDRUID_MIGRATION_VERSION', '0.1.0' );
+define( 'HOTELDRUID_MIGRATION_PLUGIN_NAME', 'hoteldruid-migration' );
 
 /**
  * The code that runs during plugin activation.
