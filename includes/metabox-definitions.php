@@ -157,10 +157,15 @@ function hoteldruid_migration_product_hoteldruid_link( $meta_boxes ) {
   $prefix = '';
 
   $meta_boxes[] = [
-    'title'      => __( 'Product HotelDruid link', 'hoteldruid-migration' ),
+    'title'      => __( 'HotelDruid links', 'hoteldruid-migration' ),
     'id'         => 'product-hoteldruid-link',
     'post_types' => ['product'],
+    'context'    => 'side',
     'autosave'   => true,
+    'include'    => [
+      'relation'     => 'OR',
+      'product_type' => [125],
+    ],
     'fields'     => [
       [
         'name'    => __( 'HotelDruid idappartementi', 'hoteldruid-migration' ),
