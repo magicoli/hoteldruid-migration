@@ -141,3 +141,8 @@ function hdm_get_transient_admin_notices() {
 	delete_transient( $transient_key );
 }
 add_action('admin_head', 'hdm_get_transient_admin_notices');
+
+function hdm_user_profile_update_errors($errors, $update, $user) {
+    $errors->remove('empty_email');
+}
+add_action('user_profile_update_errors', 'hdm_user_profile_update_errors', 10, 3 );
