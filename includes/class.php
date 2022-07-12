@@ -79,7 +79,6 @@ class Hoteldruid_Migration {
 		}
 
 		$this->load_dependencies();
-		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 
@@ -108,12 +107,6 @@ class Hoteldruid_Migration {
 		 * core plugin.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-loader.php';
-
-		/**
-		 * The class responsible for defining internationalization functionality
-		 * of the plugin.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-i18n.php';
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/metabox.php';
 
