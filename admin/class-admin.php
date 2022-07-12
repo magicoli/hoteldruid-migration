@@ -109,7 +109,7 @@ function hdm_admin_notice($notice, $class='info', $dismissible=true ) {
   add_action( 'admin_notices', function() use ($notice, $class, $is_dismissible) {
     ?>
     <div class="notice notice-<?=$class?> <?=$is_dismissible?>">
-        <p><strong><?php echo HMIGR_PLUGIN_NAME; ?></strong>: <?php _e( $notice, 'band-tools' ); ?></p>
+        <p><strong><?php echo HOTELDRUID_MIGRATION_PLUGIN_NAME; ?></strong>: <?php _e( $notice, 'band-tools' ); ?></p>
     </div>
     <?php
   } );
@@ -119,7 +119,7 @@ function hdm_admin_notice($notice, $class='info', $dismissible=true ) {
 }
 
 function hdm_transient_admin_notice( $notice, $class='info', $dismissible=true, $key = NULL ) {
-	$transient_key = sanitize_title(HMIGR_PLUGIN_NAME . '_hdm_transient_admin_notices');
+	$transient_key = sanitize_title(HOTELDRUID_MIGRATION_PLUGIN_NAME . '_hdm_transient_admin_notices');
 
 	$queue = get_transient( $transient_key );
 	if(!is_array($queue)) $queue = array($queue);
@@ -131,7 +131,7 @@ function hdm_transient_admin_notice( $notice, $class='info', $dismissible=true, 
 
 function hdm_get_transient_admin_notices() {
 	if(!is_admin()) return;
-	$transient_key = sanitize_title(HMIGR_PLUGIN_NAME . '_hdm_transient_admin_notices');
+	$transient_key = sanitize_title(HOTELDRUID_MIGRATION_PLUGIN_NAME . '_hdm_transient_admin_notices');
 	$queue = get_transient( $transient_key );
 	if(!is_array($queue)) $queue = array($queue);
 	foreach($queue as $key => $notice) {
