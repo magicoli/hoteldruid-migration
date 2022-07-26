@@ -3,7 +3,7 @@
 \#*#
 .#*
 ._*
-sources/
+local/
 tmp/
 vendor/
 composer.lock
