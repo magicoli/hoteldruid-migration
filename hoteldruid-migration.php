@@ -15,6 +15,11 @@
  * @link              https://magiiic.com/wordpress/hoteldruid-migration
  * @since             0.1.0
  * @package           Hoteldruid_Migration
+ *
+ * Icon1x: https://github.com/magicoli/hoteldruid-migration/raw/master/assets/icon-128x128.jpg
+ * Icon2x: https://github.com/magicoli/hoteldruid-migration/raw/master/assets/icon-256x256.jpg
+ * BannerHigh: https://github.com/magicoli/hoteldruid-migration/raw/master/assets/banner-1544x500.jpg
+ * BannerLow: https://github.com/magicoli/hoteldruid-migration/raw/master/assets/banner-772x250.jpg
  */
 
 // If this file is called directly, abort.
