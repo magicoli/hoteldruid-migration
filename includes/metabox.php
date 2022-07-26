@@ -1,7 +1,7 @@
 <?php
 
 require_once plugin_dir_path( __FILE__ ) . 'functions.php';
-require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
+// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-list-table.php';
 require_once plugin_dir_path( __FILE__ ) . 'import.php';
 
@@ -13,7 +13,7 @@ function hdm_import_button_values() {
 
   // rwmb_mete is not yet returning values here, using get_option instead
   $options = get_option('hoteldruid-migration', []);
-  $backup_file = isset($_REQUEST['hoteldruid_backup_file']) ? $_REQUEST['hoteldruid_backup_file'] : $options['hoteldruid_backup_file'];
+  $backup_file = isset($_REQUEST['hoteldruid_backup_file']) ? $_REQUEST['hoteldruid_backup_file'] : (isset($options['hoteldruid_backup_file']) ? $options['hoteldruid_backup_file'] : NULL);
   $clients = get_transient('hoteldruid_migration_table_clients');
   $bookings = get_transient('hoteldruid_migration_table_bookings');
   $accommodations = get_transient('hoteldruid_migration_table_accommodations');
