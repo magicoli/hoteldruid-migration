@@ -89,14 +89,16 @@ function hdm_get_hdclient_user_id($idclienti = NULL, $item = NULL) {
   }
   if($user) $result = $user->ID;
 
-
-  // We could also store idclienti and/or compare first and last name
-  // but we need a unique email to create wp user anyway, so K.I.S.S.
   wp_cache_set('hoteldruid_userid_' . $idclienti, $result, 'hoteldruid-migration');
   return $result;
 }
 
 function hdm_create_user_login($item) {
+  // if(!empty($item['soprannome'])) {
+  //   $username = $item['soprannome'];
+  //   error_log('using nickname ' . $username . ' for ' . $item['displayname']);
+  // }
+  // else
   $username = (empty($item['displayname'])) ? preg_replace('/@.*/', '', $item['email']) : $item['displayname'];
   $username = trim($username);
   if(empty($username)) return NULL;

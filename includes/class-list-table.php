@@ -183,7 +183,7 @@ class HDM_List_Table extends WP_List_Table {
 
       case 'customer':
       // $user_id = (empty($item['user_id'])) ? hdm_get_hdclient_user_id($item['idclienti']) : $item['user_id'];
-      if(empty($item['user_id'])) return NULL;
+      if(empty($item['user_id'])) return $item['idclienti'];
       $user_id = $item['user_id'];
       // if(!empty($user_id)) {
         // if(is_integer($user_id)) {
