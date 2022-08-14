@@ -1,7 +1,6 @@
 <?php
 
 require_once plugin_dir_path( __FILE__ ) . 'functions.php';
-// require_once plugin_dir_path( __FILE__ ) . 'metabox-definitions.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-list-table.php';
 require_once plugin_dir_path( __FILE__ ) . 'import.php';
 
@@ -358,22 +357,6 @@ function hoteldruid_backup_file_validation($value = NULL, $request = NULL, $para
   }
   return $value;
 }
-
-/**
- * Add settings page link in plugin actions on plugins list page
- */
-function hoteldruid_migration_settings_link( $links ) {
-	$url = esc_url( add_query_arg(
-		'page',
-		'hoteldruid-migration',
-		get_admin_url() . 'tools.php'
-	) );
-
-	array_push( $links, "<a href='$url'>" . __('Settings') . "</a>" );
-
-	return $links;
-}
-add_filter( 'plugin_action_links_hoteldruid-migration/hoteldruid-migration.php', 'hoteldruid_migration_settings_link' );
 
 function hdm_list_accommodations_output() {
   $accommodations = get_transient('hoteldruid_migration_table_accommodations');

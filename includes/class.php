@@ -124,6 +124,9 @@ class Hoteldruid_Migration {
 
 		$this->loader = new Hoteldruid_Migration_Loader();
 
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-settings.php';
+		$this->settings = new Hoteldruid_Migration_Settings();
+
 	}
 
 	/**
@@ -182,6 +185,7 @@ class Hoteldruid_Migration {
 	 */
 	public function run() {
 		$this->loader->run();
+		$this->settings->run();
 	}
 
 	/**
