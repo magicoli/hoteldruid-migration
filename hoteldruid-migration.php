@@ -54,7 +54,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class.php';
 function run_hoteldruid_migration() {
 
 	$plugin = new Hoteldruid_Migration();
-	$plugin->run();
+	$plugin->init();
 
 }
 run_hoteldruid_migration();

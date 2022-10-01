@@ -183,9 +183,9 @@ class Hoteldruid_Migration {
 	 *
 	 * @since    0.1.0
 	 */
-	public function run() {
-		$this->loader->run();
-		$this->settings->run();
+	public function init() {
+		$this->loader->init();
+		$this->settings->init();
 	}
 
 	/**
