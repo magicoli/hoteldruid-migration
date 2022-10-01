@@ -51,23 +51,27 @@ class Hoteldruid_Migration_Settings {
 		$this->actions = array();
 		$this->filters = array();
 
-		if(is_plugin_active('hoteldruid-migration/hoteldruid-migration.php'))
-		$parent_menu = 'edit.php?post_type=prestation';
-		else
-		$parent_menu = 'tools.php';
+		if ( is_plugin_active( 'multipass/multipass.php' ) ) {
+			$parent_menu = 'multipass';
+			$parent_slug = 'admin.php';
+		} else {
+			$parent_menu = 'tools.php';
+			// $parent_slug = 'tools.php';
+		}
 
-		define('HOTELDRUID_MIGRATION_MENU', $parent_menu);
+		define( 'HOTELDRUID_MIGRATION_MENU', $parent_menu );
+		// define( 'HOTELDRUID_MIGRATION_PARENT', $parent_slug );
 	}
 
 	/**
 	 * Add a new action to the collection to be registered with WordPress.
 	 *
 	 * @since    1.0.0
-	 * @param    string               $hook             The name of the WordPress action that is being registered.
-	 * @param    object               $component        A reference to the instance of the object on which the action is defined.
-	 * @param    string               $callback         The name of the function definition on the $component.
-	 * @param    int                  $priority         Optional. The priority at which the function should be fired. Default is 10.
-	 * @param    int                  $accepted_args    Optional. The number of arguments that should be passed to the $callback. Default is 1.
+	 * @param    string $hook             The name of the WordPress action that is being registered.
+	 * @param    object $component        A reference to the instance of the object on which the action is defined.
+	 * @param    string $callback         The name of the function definition on the $component.
+	 * @param    int    $priority         Optional. The priority at which the function should be fired. Default is 10.
+	 * @param    int    $accepted_args    Optional. The number of arguments that should be passed to the $callback. Default is 1.
 	 */
 	public function add_action( $hook, $component, $callback, $priority = 10, $accepted_args = 1 ) {
 		$this->actions = $this->add( $this->actions, $hook, $component, $callback, $priority, $accepted_args );
@@ -77,11 +81,11 @@ class Hoteldruid_Migration_Settings {
 	 * Add a new filter to the collection to be registered with WordPress.
 	 *
 	 * @since    1.0.0
-	 * @param    string               $hook             The name of the WordPress filter that is being registered.
-	 * @param    object               $component        A reference to the instance of the object on which the filter is defined.
-	 * @param    string               $callback         The name of the function definition on the $component.
-	 * @param    int                  $priority         Optional. The priority at which the function should be fired. Default is 10.
-	 * @param    int                  $accepted_args    Optional. The number of arguments that should be passed to the $callback. Default is 1
+	 * @param    string $hook             The name of the WordPress filter that is being registered.
+	 * @param    object $component        A reference to the instance of the object on which the filter is defined.
+	 * @param    string $callback         The name of the function definition on the $component.
+	 * @param    int    $priority         Optional. The priority at which the function should be fired. Default is 10.
+	 * @param    int    $accepted_args    Optional. The number of arguments that should be passed to the $callback. Default is 1
 	 */
 	public function add_filter( $hook, $component, $callback, $priority = 10, $accepted_args = 1 ) {
 		$this->filters = $this->add( $this->filters, $hook, $component, $callback, $priority, $accepted_args );
@@ -93,12 +97,12 @@ class Hoteldruid_Migration_Settings {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array                $hooks            The collection of hooks that is being registered (that is, actions or filters).
-	 * @param    string               $hook             The name of the WordPress filter that is being registered.
-	 * @param    object               $component        A reference to the instance of the object on which the filter is defined.
-	 * @param    string               $callback         The name of the function definition on the $component.
-	 * @param    int                  $priority         The priority at which the function should be fired.
-	 * @param    int                  $accepted_args    The number of arguments that should be passed to the $callback.
+	 * @param    array  $hooks            The collection of hooks that is being registered (that is, actions or filters).
+	 * @param    string $hook             The name of the WordPress filter that is being registered.
+	 * @param    object $component        A reference to the instance of the object on which the filter is defined.
+	 * @param    string $callback         The name of the function definition on the $component.
+	 * @param    int    $priority         The priority at which the function should be fired.
+	 * @param    int    $accepted_args    The number of arguments that should be passed to the $callback.
 	 * @return   array                                  The collection of actions and filters registered with WordPress.
 	 */
 	private function add( $hooks, $hook, $component, $callback, $priority, $accepted_args ) {
@@ -108,7 +112,7 @@ class Hoteldruid_Migration_Settings {
 			'component'     => $component,
 			'callback'      => $callback,
 			'priority'      => $priority,
-			'accepted_args' => $accepted_args
+			'accepted_args' => $accepted_args,
 		);
 
 		return $hooks;
@@ -122,88 +126,87 @@ class Hoteldruid_Migration_Settings {
 	 */
 	public function run() {
 
-		$actions = array(
-		);
+		$actions = array();
 
 		$filters = array(
-			array (
-				'hook' => 'mb_settings_pages',
+			array(
+				'hook'     => 'mb_settings_pages',
 				'callback' => 'register_settings_pages',
 				'priority' => 30,
 			),
-			array (
-				'hook' => 'rwmb_meta_boxes',
-				'callback' => 'register_settings_fields'
+			array(
+				'hook'     => 'rwmb_meta_boxes',
+				'callback' => 'register_settings_fields',
 			),
 			array(
-				'hook' => 'plugin_action_links_hoteldruid-migration/hoteldruid-migration.php',
+				'hook'     => 'plugin_action_links_hoteldruid-migration/hoteldruid-migration.php',
 				'callback' => 'plugin_action_links',
 			),
 			array(
-				'hook' => 'rwmb_meta_boxes',
-				'callback' => 'hoteldruid_migration_product_hoteldruid_link'
+				'hook'     => 'rwmb_meta_boxes',
+				'callback' => 'hoteldruid_migration_product_hoteldruid_link',
 			),
 		);
 
-		if(!empty(hdm_get_option('import_data'))) {
+		if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
 			$filters = $filters + array(
 				array(
-					'hook' => 'rwmb_meta_boxes',
+					'hook'     => 'rwmb_meta_boxes',
 					'callback' => 'hoteldruid_migration_tab_accommodations',
 				),
 				array(
-					'hook' => 'rwmb_meta_boxes',
+					'hook'     => 'rwmb_meta_boxes',
 					'callback' => 'hoteldruid_migration_tab_clients',
 				),
 				array(
-					'hook' => 'rwmb_meta_boxes',
-					'callback' => 'hoteldruid_migration_tab_bookings'
+					'hook'     => 'rwmb_meta_boxes',
+					'callback' => 'hoteldruid_migration_tab_bookings',
 				),
 			);
 		}
 
 		foreach ( $filters as $hook ) {
-			(empty($hook['component'])) && $hook['component'] = __CLASS__;
-			(empty($hook['priority'])) && $hook['priority'] = 10;
-			(empty($hook['accepted_args'])) && $hook['accepted_args'] = 1;
+			( empty( $hook['component'] ) ) && $hook['component']         = __CLASS__;
+			( empty( $hook['priority'] ) ) && $hook['priority']           = 10;
+			( empty( $hook['accepted_args'] ) ) && $hook['accepted_args'] = 1;
 			add_filter( $hook['hook'], array( $hook['component'], $hook['callback'] ), $hook['priority'], $hook['accepted_args'] );
 		}
 
 		foreach ( $actions as $hook ) {
-			(empty($hook['component'])) && $hook['component'] = __CLASS__;
-			(empty($hook['priority'])) && $hook['priority'] = 10;
-			(empty($hook['accepted_args'])) && $hook['accepted_args'] = 1;
+			( empty( $hook['component'] ) ) && $hook['component']         = __CLASS__;
+			( empty( $hook['priority'] ) ) && $hook['priority']           = 10;
+			( empty( $hook['accepted_args'] ) ) && $hook['accepted_args'] = 1;
 			add_action( $hook['hook'], array( $hook['component'], $hook['callback'] ), $hook['priority'], $hook['accepted_args'] );
 		}
 
 	}
 
 	static function register_settings_pages( $settings_pages ) {
-	  $settings_pages['hoteldruid-migration'] = [
-	    'menu_title' => __( 'HotelDruid migration', 'hoteldruid-migration' ),
-	    'id'         => 'hoteldruid-migration',
-	    'position'   => 25,
-	    'parent'     => HOTELDRUID_MIGRATION_MENU,
-	    'capability' => 'manage_woocommerce',
-	    'style'      => 'no-boxes',
-	    'columns'    => 1,
-	    // 'tabs'       => [
-	    //   'settings'       => 'Settings',
-	    //   'accommodations' => 'Accomodations',
-	    //   'clients'        => 'Clients',
-	    //   'bookings'       => 'Bookings',
-	    // ],
-	    'icon_url'   => 'dashicons-admin-generic',
-	  ];
+		$settings_pages['hoteldruid-migration'] = array(
+			'menu_title' => __( 'HotelDruid migration', 'hoteldruid-migration' ),
+			'id'         => 'hoteldruid-migration',
+			'position'   => 25,
+			'parent'     => HOTELDRUID_MIGRATION_MENU,
+			'capability' => 'manage_woocommerce',
+			'style'      => 'no-boxes',
+			'columns'    => 1,
+			// 'tabs'       => [
+			// 'settings'       => 'Settings',
+			// 'accommodations' => 'Accomodations',
+			// 'clients'        => 'Clients',
+			// 'bookings'       => 'Bookings',
+			// ],
+			'icon_url'   => 'dashicons-admin-generic',
+		);
 
-	  if(!empty(hdm_get_option('import_data'))) {
-	    $settings_pages['hoteldruid-migration']['tabs'] = [
-	      'settings'       => 'Settings',
-	      'accommodations' => 'Accomodations',
-	      'clients'        => 'Clients',
-	      'bookings'       => 'Bookings',
-	    ];
-	  }
+		if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
+			$settings_pages['hoteldruid-migration']['tabs'] = array(
+				'settings'       => 'Settings',
+				'accommodations' => 'Accomodations',
+				'clients'        => 'Clients',
+				'bookings'       => 'Bookings',
+			);
+		}
 
 		return $settings_pages;
 	}
@@ -211,151 +214,153 @@ class Hoteldruid_Migration_Settings {
 	static function register_settings_fields( $meta_boxes ) {
 		$prefix = '';
 
-	  $meta_boxes[] = [
-	    'title'          => __( 'Settings', 'hoteldruid-migration' ),
-	    'id'             => 'hoteldruid-migration-settings',
-	    'settings_pages' => ['hoteldruid-migration'],
-	    'tab'            => 'settings',
-	    'fields'         => [
-	      [
-	        'name'              => __( 'HotelDruid backup file location', 'hoteldruid-migration' ),
-	        'id'                => $prefix . 'hoteldruid_backup_file',
-	        'type'              => 'file_input',
-	        'desc'              => __( 'HotelDruid backup file full path. Must be saved in a place readable by the web server, but outside website folder.', 'hoteldruid-migration' ),
-	        'placeholder'       => __( '/full/path/to/hoteld_backup.php', 'hoteldruid-migration' ),
-	        'columns'           => 9,
-	        'sanitize_callback' => 'hoteldruid_backup_file_validation',
-	      ],
-	      [
-	        'name'     => __( 'File info', 'hoteldruid-migration' ),
-	        'id'       => $prefix . 'file_info',
-	        'type'     => 'custom_html',
-	        'callback' => 'hdm_file_info_output',
-	        'visible'  => [
-	          'when'     => [['hoteldruid_backup_file', '!=', '']],
-	          'relation' => 'or',
-	        ],
-	      ],
-	      [
-	        'name'              => __( 'Import data in WooCommerce', 'hoteldruid-migration' ),
-	        'id'                => $prefix . 'import_data',
-	        'type'              => 'button_group',
-	        'options'           => hdm_import_button_values(),
-	        'sanitize_callback' => 'import_data_field_validation',
-	      ],
-	    ],
-	    'validation'     => [
-	      'rules'    => [
-	        $prefix . 'hoteldruid_backup_file' => [
-	          'extension' => 'php,php.gz',
-	        ],
-	      ],
-	      'messages' => [
-	        $prefix . 'hoteldruid_backup_file' => [
-	          'extension' => 'Allowed formats: *.php or *.php.gz',
-	        ],
-	      ],
-	    ],
-	  ];
+		$meta_boxes[] = array(
+			'title'          => __( 'Settings', 'hoteldruid-migration' ),
+			'id'             => 'hoteldruid-migration-settings',
+			'settings_pages' => array( 'hoteldruid-migration' ),
+			'tab'            => 'settings',
+			'fields'         => array(
+				array(
+					'name'              => __( 'HotelDruid backup file location', 'hoteldruid-migration' ),
+					'id'                => $prefix . 'hoteldruid_backup_file',
+					'type'              => 'file_input',
+					'desc'              => __( 'HotelDruid backup file full path. Must be saved in a place readable by the web server, but outside website folder.', 'hoteldruid-migration' ),
+					'placeholder'       => __( '/full/path/to/hoteld_backup.php', 'hoteldruid-migration' ),
+					'columns'           => 9,
+					'sanitize_callback' => 'hoteldruid_backup_file_validation',
+				),
+				array(
+					'name'     => __( 'File info', 'hoteldruid-migration' ),
+					'id'       => $prefix . 'file_info',
+					'type'     => 'custom_html',
+					'callback' => 'hdm_file_info_output',
+					'visible'  => array(
+						'when'     => array( array( 'hoteldruid_backup_file', '!=', '' ) ),
+						'relation' => 'or',
+					),
+				),
+				array(
+					'name'              => __( 'Import data in WooCommerce', 'hoteldruid-migration' ),
+					'id'                => $prefix . 'import_data',
+					'type'              => 'button_group',
+					'options'           => hdm_import_button_values(),
+					'sanitize_callback' => 'import_data_field_validation',
+				),
+			),
+			'validation'     => array(
+				'rules'    => array(
+					$prefix . 'hoteldruid_backup_file' => array(
+						'extension' => 'php,php.gz',
+					),
+				),
+				'messages' => array(
+					$prefix . 'hoteldruid_backup_file' => array(
+						'extension' => 'Allowed formats: *.php or *.php.gz',
+					),
+				),
+			),
+		);
 
 		return $meta_boxes;
 	}
 
 	static function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
-	  $prefix = '';
+		$prefix = '';
 
-	  $meta_boxes[] = [
-	    'title'          => __( 'Accommodations', 'hoteldruid-migration' ),
-	    'id'             => 'hoteldruid-migration-accommodations',
-	    'settings_pages' => ['hoteldruid-migration'],
-	    'tab'            => 'accommodations',
-	    'fields'         => [
-	      [
-	        'id'       => $prefix . 'hdm_list_accommodations',
-	        'type'     => 'custom_html',
-	        'callback' => 'hdm_list_accommodations_output',
-	      ],
-	    ],
-	  ];
+		$meta_boxes[] = array(
+			'title'          => __( 'Accommodations', 'hoteldruid-migration' ),
+			'id'             => 'hoteldruid-migration-accommodations',
+			'settings_pages' => array( 'hoteldruid-migration' ),
+			'tab'            => 'accommodations',
+			'fields'         => array(
+				array(
+					'id'       => $prefix . 'hdm_list_accommodations',
+					'type'     => 'custom_html',
+					'callback' => 'hdm_list_accommodations_output',
+				),
+			),
+		);
 
-	  return $meta_boxes;
+		return $meta_boxes;
 	}
 
 	static function hoteldruid_migration_tab_clients( $meta_boxes ) {
-	  $prefix = '';
+		$prefix = '';
 
-	  $meta_boxes[] = [
-	    'title'          => __( 'Clients', 'hoteldruid-migration' ),
-	    'id'             => 'hoteldruid-migration-clients',
-	    'settings_pages' => ['hoteldruid-migration'],
-	    'tab'            => 'clients',
-	    'fields'         => [
-	      [
-	        'id'       => $prefix . 'hdm_list_clients',
-	        'type'     => 'custom_html',
-	        'callback' => 'hdm_list_clients_output',
-	      ],
-	    ],
-	  ];
+		$meta_boxes[] = array(
+			'title'          => __( 'Clients', 'hoteldruid-migration' ),
+			'id'             => 'hoteldruid-migration-clients',
+			'settings_pages' => array( 'hoteldruid-migration' ),
+			'tab'            => 'clients',
+			'fields'         => array(
+				array(
+					'id'       => $prefix . 'hdm_list_clients',
+					'type'     => 'custom_html',
+					'callback' => 'hdm_list_clients_output',
+				),
+			),
+		);
 
-	  return $meta_boxes;
+		return $meta_boxes;
 	}
 
 	static function hoteldruid_migration_tab_bookings( $meta_boxes ) {
-	  $prefix = '';
+		$prefix = '';
 
-	  $meta_boxes[] = [
-	    'title'          => __( 'Bookings', 'hoteldruid-migration' ),
-	    'id'             => 'hoteldruid-migration-bookings',
-	    'settings_pages' => ['hoteldruid-migration'],
-	    'tab'            => 'bookings',
-	    'fields'         => [
-	      [
-	        'id'       => $prefix . 'hdm_list_bookings',
-	        'type'     => 'custom_html',
-	        'callback' => 'hdm_list_bookings_output',
-	      ],
-	    ],
-	  ];
+		$meta_boxes[] = array(
+			'title'          => __( 'Bookings', 'hoteldruid-migration' ),
+			'id'             => 'hoteldruid-migration-bookings',
+			'settings_pages' => array( 'hoteldruid-migration' ),
+			'tab'            => 'bookings',
+			'fields'         => array(
+				array(
+					'id'       => $prefix . 'hdm_list_bookings',
+					'type'     => 'custom_html',
+					'callback' => 'hdm_list_bookings_output',
+				),
+			),
+		);
 
-	  return $meta_boxes;
+		return $meta_boxes;
 	}
 
-	function plugin_action_links( $links ) {
+	static function plugin_action_links( $links ) {
 
-		$url = esc_url( add_query_arg(
-			array( 'page' => 'hoteldruid-migration' ),
-			get_admin_url() . HOTELDRUID_MIGRATION_MENU
-		));
-		$links = [ 'settings' => "<a href='$url'>" . __('Settings', 'Hoteldruid_Migration') . "</a>" ] + $links;
+		$url   = esc_url(
+			add_query_arg(
+				array( 'page' => 'hoteldruid-migration' ),
+				get_admin_url() . ( preg_match('/\.php$/', HOTELDRUID_MIGRATION_MENU ) ? HOTELDRUID_MIGRATION_MENU : 'admin.php' ),
+			)
+		);
+		$links = array( 'settings' => "<a href='$url'>" . __( 'Settings', 'Hoteldruid_Migration' ) . '</a>' ) + $links;
 
 		return $links;
 	}
 
 	static function hoteldruid_migration_product_hoteldruid_link( $meta_boxes ) {
-	  $prefix = '';
+		$prefix = '';
 
-	  $meta_boxes[] = [
-	    'title'      => __( 'HotelDruid links', 'hoteldruid-migration' ),
-	    'id'         => 'product-hoteldruid-link',
-	    'post_types' => ['product'],
-	    'context'    => 'side',
-	    'autosave'   => true,
-	    'include'    => [
-	      'relation'     => 'OR',
-	      'product_type' => [125],
-	    ],
-	    'fields'     => [
-	      [
-	        'name'    => __( 'HotelDruid idappartementi', 'hoteldruid-migration' ),
-	        'id'      => $prefix . 'hoteldruid_idappartementi',
-	        'type'    => 'select',
-	        'options' => hdm_get_idappartamenti_list(),
-	      ],
-	    ],
-	  ];
+		$meta_boxes[] = array(
+			'title'      => __( 'HotelDruid links', 'hoteldruid-migration' ),
+			'id'         => 'product-hoteldruid-link',
+			'post_types' => array( 'product' ),
+			'context'    => 'side',
+			'autosave'   => true,
+			'include'    => array(
+				'relation'     => 'OR',
+				'product_type' => array( 125 ),
+			),
+			'fields'     => array(
+				array(
+					'name'    => __( 'HotelDruid idappartementi', 'hoteldruid-migration' ),
+					'id'      => $prefix . 'hoteldruid_idappartementi',
+					'type'    => 'select',
+					'options' => hdm_get_idappartamenti_list(),
+				),
+			),
+		);
 
-	  return $meta_boxes;
+		return $meta_boxes;
 	}
 
 }
