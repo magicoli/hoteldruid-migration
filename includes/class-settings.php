@@ -223,6 +223,11 @@ class Hoteldruid_Migration_Settings {
 			'tab'            => 'settings',
 			'fields'         => array(
 				array(
+					'name' => __('Disclaimer', 'hoteldruid-migration'),
+					'type' => 'custom_html',
+					'desc' => HOTELDRUID_DISCLAIMER,
+				),
+				array(
 					'name'              => __( 'HotelDruid backup file path', 'hoteldruid-migration' ),
 					'id'                => $prefix . 'hoteldruid_backup_file',
 					'type'              => 'file_input',

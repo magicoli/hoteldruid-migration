@@ -82,6 +82,15 @@ class Hoteldruid_Migration {
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 
+		define(
+			'HOTELDRUID_DISCLAIMER',
+			sprintf( __( 'HotelDruid Migration module allows migrating from HotelDruid another booking management system.
+			It requires to import a backup file created in HotelDruid.
+			Unlike other %s modules, it is not intended for a continuous synchronized use.
+			Unfortunately, HotelDruid is built in a way that does not allow a safe and continuous integration with other solutions.
+			After importation, the module can be safely deactivated.', 'hoteldruid-migration'),
+			'<a href="https://magiiic.com/wordpress/plugins/multipass/" target="_blank">MultiPass</a>' )
+		);
 	}
 
 	/**

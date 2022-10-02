@@ -29,7 +29,7 @@ function hdm_import_button_values() {
 
 function hdm_get_idappartamenti_list() {
   $accommodations = get_transient('hoteldruid_migration_table_accommodations');
-  if(empty($accommodations)) return array(false => __('Import HodelDruid data to link product to an accommodation'));
+  if(empty($accommodations)) return array(false => __('Import HotelDruid data to link product to an accommodation'));
   $values[false] = __('Select an accommodation', 'hoteldruid');
   foreach($accommodations as $acc) {
     $values[$acc['idappartamenti']] = $acc['idappartamenti'];

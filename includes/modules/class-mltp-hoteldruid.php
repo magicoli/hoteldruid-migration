@@ -137,7 +137,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 	}
 
 	function activate() {
-		// self::sync_now();
+		// self::import_now();
 	}
 
 	/**
@@ -163,7 +163,13 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			'tab'            => 'hoteldruid',
 			'fields'         => array(
 				array(
-					'name'     => __( 'Import data', 'hoteldruid-migration' ),
+					'name'  => __( 'Disclaimer', 'hoteldruid-migration' ),
+					'type'  => 'custom_html',
+					'desc'  => HOTELDRUID_DISCLAIMER,
+					'class' => 'warning',
+				),
+				array(
+					'name'     => __( 'Data found in backup file', 'hoteldruid-migration' ),
 					'type'     => 'custom_html',
 					'callback' => array( $this, 'render_import_data' ),
 				),
@@ -175,12 +181,12 @@ class Mltp_HotelDruid extends Mltp_Modules {
 					'sanitize_callback' => array( $this, 'sanitize_resource' ),
 				),
 				array(
-					'name'              => __( 'Synchronize now', 'multipass' ),
-					'id'                => $prefix . 'sync_now',
+					'name'              => __( 'Import now', 'multipass' ),
+					'id'                => $prefix . 'import_now',
 					'type'              => 'switch',
-					'desc'              => __( 'Sync orders and prestations, create prestation if none exist. Only useful after plugin activation or if out of sync.', 'multipass' ),
+					'desc'              => __( 'Import bookings in MultiPass, create missing prestations, only proceed once. HotelDruid Migration module can be safely deactivated and uninstalled after importation.', 'multipass' ),
 					'style'             => 'rounded',
-					'sanitize_callback' => array( $this, 'sync_now_sanitize_callback' ),
+					'sanitize_callback' => array( $this, 'import_now_sanitize_callback' ),
 					'save_field'        => false,
 				),
 			),
@@ -313,11 +319,9 @@ class Mltp_HotelDruid extends Mltp_Modules {
 
 	function render_import_data() {
 		$html = sprintf(
-			'<ul>
-			<li>%s accommodations</li>
-			<li>%s clients</li>
-			<li>%s bookings</li>
-			</ul>',
+			'%s appartments<br/>
+			%s clients<br/>
+			%s bookings',
 			count( $this->appartementi ),
 			count( $this->clienti ),
 			count( $this->prenota ),
@@ -407,15 +411,15 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		add_action( current_action(), __CLASS__ . '::' . __FUNCTION__, 10, 3 );
 	}
 
-	function sync_now_sanitize_callback( $value, $field, $oldvalue ) {
+	function import_now_sanitize_callback( $value, $field, $oldvalue ) {
 		if ( $value == true ) {
-			self::sync_now();
+			self::import_now();
 		}
 
 		return false; // sync_order field should never be saved
 	}
 
-	function sync_now() {
+	function import_now() {
 		$orders = wc_get_orders(
 			array(
 				'limit'   => -1, // Query all orders
