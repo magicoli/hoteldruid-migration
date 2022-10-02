@@ -21,7 +21,7 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
       $debug .= "\nuser_id $user_id";
 
       if ( $user_id ) {
-        $debug.=" found $user_id";
+        // $debug.=" found $user_id";
         $user = get_user_by('id', $user_id);
         $userdata['ID'] = $user_id;
         // $user_id = $user->ID;
@@ -51,15 +51,18 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
           'role'                  => 'customer',   //(string) User's role.
           'locale'                => (!empty($user->locale)) ? $user->locale : $item['lingua'],   //(string) User's locale. Default empty.
         );
-        $user_id = wp_insert_user( $userdata );
-        if(is_wp_error($user_id)) {
-          error_log("could not create user for ${item['idclienti']} ${item['email']} $user_login:\n" . utf8_decode($user_id->get_error_message()));
-          $user_id = false;
+        if( hdm_get_option( 'hoteldruid_create_user' ) ) {
+          $user_id = wp_insert_user( $userdata );
+          if(is_wp_error($user_id)) {
+            error_log("could not create user for ${item['idclienti']} ${item['email']} $user_login:\n" . utf8_decode($user_id->get_error_message()));
+            $user_id = false;
+          }
+        } else {
+          $debug .= "\nuser creation disabled";
         }
-        else $debug .= " user_id now $user_id";
       }
-      $debug .= "\nupdating user meta";
       if($user_id) {
+        // $debug .= "\nupdating user meta";
         if ( empty($item['firstname']) || empty($item['lastname'])) {
           $billing_company = $item['displayname'];
           $billing_first_name = NULL;
@@ -85,13 +88,13 @@ function import_data_field_validation($value = NULL, $request = NULL, $param = N
         );
         foreach ($usermeta as $meta_key => $meta_value) {
           if(!empty($meta_value)) {
-            $debug.= "\n  $meta_key=$meta_value";
+            // $debug.= "\n  $meta_key=$meta_value";
             update_user_meta($user_id, $meta_key, $meta_value);
           }
         }
       }
       $clients[$key]['user_id'] = $user_id;
-      // error_log(__FUNCTION__ . " $debug\n");
+      error_log(__FUNCTION__ . " $debug\n");
     }
 
     // do some stuff and return 'processed' if succeeded, 'ready' if failed

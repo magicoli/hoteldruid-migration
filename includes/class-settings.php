@@ -126,7 +126,9 @@ class Hoteldruid_Migration_Settings {
 	 */
 	public function init() {
 
-		$actions = array();
+		$actions = array(
+
+		);
 
 		$filters = array(
 			array(
@@ -201,7 +203,7 @@ class Hoteldruid_Migration_Settings {
 
 		if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
 			$settings_pages['hoteldruid-migration']['tabs'] = array(
-				'settings'       => 'Settings',
+				'settings'       => __('Settings', 'hoteldruid-migration'),
 				'accommodations' => 'Accomodations',
 				'clients'        => 'Clients',
 				'bookings'       => 'Bookings',
@@ -221,7 +223,7 @@ class Hoteldruid_Migration_Settings {
 			'tab'            => 'settings',
 			'fields'         => array(
 				array(
-					'name'              => __( 'HotelDruid backup file location', 'hoteldruid-migration' ),
+					'name'              => __( 'HotelDruid backup file path', 'hoteldruid-migration' ),
 					'id'                => $prefix . 'hoteldruid_backup_file',
 					'type'              => 'file_input',
 					'desc'              => __( 'HotelDruid backup file full path. Must be saved in a place readable by the web server, but outside website folder.', 'hoteldruid-migration' ),
@@ -240,11 +242,25 @@ class Hoteldruid_Migration_Settings {
 					),
 				),
 				array(
-					'name'              => __( 'Import data in WooCommerce', 'hoteldruid-migration' ),
+					'name'              => __( 'Import data (modified)', 'hoteldruid-migration' ),
 					'id'                => $prefix . 'import_data',
 					'type'              => 'button_group',
 					'options'           => hdm_import_button_values(),
 					'sanitize_callback' => 'import_data_field_validation',
+				),
+				array(
+					'name'              => __( 'Create users', 'multipass' ),
+					'id'                => $prefix . 'create_users',
+					'type'              => 'switch',
+					'desc'              => __( 'Create WordPress users for HotelDruid clients if none exists.', 'multipass' ),
+					'style'             => 'rounded',
+					'visible'  => array(
+						'when'     => array(
+							array( 'hoteldruid_backup_file', '!=', '' ),
+							array( 'import_data', '=', 'process' ),
+						),
+						'relation' => 'and',
+					),
 				),
 			),
 			'validation'     => array(

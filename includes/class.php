@@ -121,6 +121,10 @@ class Hoteldruid_Migration {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-public.php';
 
+		add_filter('multipass_load_modules', function($modules) {
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/modules/class-mltp-hoteldruid.php';
+			return $modules;
+		});
 
 		$this->loader = new Hoteldruid_Migration_Loader();
 
