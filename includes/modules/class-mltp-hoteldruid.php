@@ -62,6 +62,47 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		if ( empty( $this->appartementi ) ) {
 			$this->appartementi = array();
 		}
+
+		$this->countrycodes = array(
+			'United States Of America' => 'US',
+			'0' => '',
+			'Guadeloupe' => 'GP',
+			'France' => 'FR',
+			'Belgium' => 'BE',
+			'Switzerland' => 'CH',
+			'Martinique' => 'MQ',
+			'United Kingdom' => 'MF',
+			'Czech Republic' => 'CZ',
+			'Belgique' => 'BE',
+			'Royaume Uni' => 'GB',
+			'Sweden' => 'SE',
+			'Germany' => 'DE',
+			"C\xc3\xb4te D'Ivoire" => 'CI',
+			'Slovenia' => 'SI',
+			'Canada' => 'CA',
+			'Netherlands' => 'NL',
+			'Italy' => 'IT',
+			'Cz' => 'CZ',
+			'Fr' => 'FR',
+			'Us' => 'US',
+			'Ca' => 'CA',
+			'Dm' => 'DM',
+			'Luxembourg' => 'LU',
+			'Ch' => 'CH',
+			'Se' => 'SE',
+			'Poland' => 'PL',
+			'Austria' => 'AT',
+			'Ro' => 'RO',
+			'Romania' => 'RO',
+			'Saint Martin' => 'SF',
+			'Pl' => 'PL',
+		);
+		$this->languagecodes = array(
+			'en' => 'en',
+			'fr' => 'fr_FR',
+			'de' => 'de_DE',
+		);
+
 		// register_activation_hook( MULTIPASS_FILE, __CLASS__ . '::activate' );
 		// register_deactivation_hook( MULTIPASS_FILE, __CLASS__ . '::deactivate' );
 	}
@@ -101,7 +142,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 				'callback' => 'register_fields',
 			),
 			array(
-				'hook'     => 'multipass_register_terms_prestation-item-source',
+				'hook'     => 'multipass_register_terms_mltp_detail-source',
 				'callback' => 'register_sources_filter',
 			),
 		//
@@ -211,9 +252,9 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			),
 		);
 
-		$wc_term    = get_term_by( 'slug', 'hoteldruid', 'prestation-item-source' );
-		$wc_term_id = ( $wc_term ) ? get_term_by( 'slug', 'hoteldruid', 'prestation-item-source' )->term_id : 'hoteldruid';
-		// Order info on prestation-item
+		$wc_term    = get_term_by( 'slug', 'hoteldruid', 'mltp_detail-source' );
+		$wc_term_id = ( $wc_term ) ? get_term_by( 'slug', 'hoteldruid', 'mltp_detail-source' )->term_id : 'hoteldruid';
+		// Order info on mltp_detail
 
 		// Prestation info on WC Orders
 		$prefix = 'prestation_';
@@ -250,7 +291,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 				'name'        => $key,
 				'id'          => $key,
 				'type'        => 'post',
-				'post_type'   => array( 'mp_resource' ),
+				'post_type'   => array( 'mltp_resource' ),
 				'field_type'  => 'select_advanced',
 				'placeholder' => __( 'Do not import', 'multipass' ),
 				'size'        => 5,
@@ -265,8 +306,8 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		$options = array_replace( $options, $values );
 		// error_log("options " . print_r($options, true));
 
-		foreach ( $options as $idappartementi => $resource_id ) {
-			$query = $this->get_resources( $idappartementi );
+		foreach ( $options as $idappartamenti => $resource_id ) {
+			$query = $this->get_resources( $idappartamenti );
 
 			while ( $query->have_posts() ) {
 				$query->the_post();
@@ -280,25 +321,25 @@ class Mltp_HotelDruid extends Mltp_Modules {
 				// add reference to resource
 				$resource = new Mltp_Resource( $resource_id );
 				if ( $resource ) {
-					update_post_meta( $resource->id, 'resource_hoteldruid_id', $idappartementi );
+					update_post_meta( $resource->id, 'resource_hoteldruid_id', $idappartamenti );
 				} else {
 					$resource_id = null;
 				}
-				// error_log("$idappartementi = $resource_id resource->id $resource->id " . print_r($meta, true));
+				// error_log("$idappartamenti = $resource_id resource->id $resource->id " . print_r($meta, true));
 			}
 		}
 
 		return $values;
 	}
 
-	function get_resources( $idappartementi = null ) {
+	function get_resources( $idappartamenti = null ) {
 		$args  = array(
 			'posts_per_page' => -1,
-			'post_type'      => 'mp_resource',
+			'post_type'      => 'mltp_resource',
 			'meta_query'     => array(
 				array(
 					'meta_key' => 'resource_hoteldruid_id',
-					'value'    => $idappartementi,
+					'value'    => $idappartamenti,
 				),
 			),
 		);
@@ -306,11 +347,11 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		return $query;
 	}
 
-	function get_resource_id( $idappartementi = null ) {
-		if ( empty( $idappartementi ) ) {
+	function get_resource_id( $idappartamenti = null ) {
+		if ( empty( $idappartamenti ) ) {
 			return;
 		}
-		$query = $this->get_resources( $idappartementi );
+		$query = $this->get_resources( $idappartamenti );
 		if ( $query->have_posts() ) {
 			$query->the_post();
 			return get_the_ID();
@@ -404,7 +445,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			// self::update_order_prestation($post_id, $post, $update );
 			// break;
 
-			case 'prestation':
+			case 'mltp_prestation':
 				self::update_prestation_orders( $post_id, $post, $update );
 				break;
 		}
@@ -420,19 +461,212 @@ class Mltp_HotelDruid extends Mltp_Modules {
 	}
 
 	function import_now() {
-		$orders = wc_get_orders(
-			array(
-				'limit'   => -1, // Query all orders
-				'orderby' => 'date',
-				'order'   => 'ASC',
-			// 'meta_key'     => 'prestation_id', // The postmeta key field
-			// 'meta_compare' => 'NOT EXISTS', // The comparison argument
-			)
-		);
-		foreach ( $orders as $key => $order ) {
-			$order_post = get_post( $order->get_id() );
-			self::update_order_prestation( $order_post->ID, $order_post, true );
+
+		foreach ( $this->appartementi as $idappartamenti => $appartment ) {
+			$appartment['resource_id'] = $this->get_resource_id( $idappartamenti );
+			if ( empty( $appartment['resource_id'] ) ) {
+				continue;
+			}
+
+			$appartments[ $idappartamenti ] = $appartment;
 		}
+
+		$bookings = $this->prenota;
+		if ( empty( $bookings ) ) {
+			return false;
+		}
+
+		$clients = $this->clienti;
+
+		foreach ( $bookings as $key => $prenota ) {
+			$booking = $prenota;
+			$resource_id = Mltp_Resource::get_resource_id( 'hoteldruid', $booking['idappartamenti'] );
+			if ( ! $resource_id ) {
+				// No resource associated with this property.
+				continue;
+			}
+
+			$resource = new Mltp_Resource( $resource_id );
+			$debug    = '';
+
+			// $status = $booking['status'];
+			// if(in_array($status, [ 'Declined', 'Open', 'Unavailable' ] )) continue;
+
+			// if( ! in_array( $status, [ 'Booked', 'Tentative' ] ) ) {
+			// error_log(
+			// "Check status "
+			// . print_r( $booking, true )
+			// );
+			// break;
+			// }
+			// $confirmed = (in_array($status, [ 'Booked' ])) ? true : false;
+			$confirmed = true;
+
+			$created    = strtotime( $booking['datainserimento'] );
+			$modified   = strtotime( $booking['data_modifica'] );
+			$from       = strtotime( $booking['arrival'] );
+			$to         = strtotime( $booking['departure'] );
+			$dates      = array(
+				'from' => $from,
+				'to'   => $to,
+			);
+			$date_range = MultiPass::format_date_range( $dates );
+
+			$client          = $clients[ $booking['idclienti'] ];
+
+			$prestation_args = array(
+				'customer_name'  => $client['displayname'],
+				'customer_email' => preg_replace( '/,.*/', '', $client['email'] ),
+				'customer_phone' => preg_replace( '/,.*/', '', $client['phone'] ),
+				'date'           => MultiPass::format_date_iso( $created ),
+				// 'source_url'       => $source_url,
+				// 'origin_url'       => $origin_url,
+				// 'confirmed' => $confirmed,
+				'from'           => $from,
+				'to'             => $to,
+			);
+
+			$prestation = new Mltp_Prestation( $prestation_args, true );
+			if ( ! $prestation ) {
+				error_log( __CLASS__ . '::' . __FUNCTION__ . ' Could not find nor create prestation, aborting import' );
+				return false;
+			}
+			$edit_url  = get_edit_post_link( $prestation->ID );
+			$guests_total = $booking['num_persone'];
+
+			if( preg_match('/(adult)/', $booking['cat_persone']) ) {
+				$booking['adults'] = preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $booking['cat_persone']);
+				$booking['children'] = ( preg_match('/(child|enfant)/', $booking['cat_persone']) ) ? preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $booking['cat_persone']) : 0;
+			} else if( preg_match('/(child|enfant)/', $booking['cat_persone']) ) {
+				$booking['adults'] = 0;
+				$booking['children'] = preg_replace('/1([0-9]+)>s.*/', '$1', $booking['cat_persone']);
+			}
+
+			$guests_adults    = empty($booking['adults']) ? 0 : $booking['adults'];
+			$guests_children  = empty($booking['children']) ? 0 : $booking['children'];
+
+			$source_url = null;
+
+			$p_replace  = array(
+				'/AirbnbIntegration/' => 'airbnb',
+				'/Booking.?Com/i'     => 'booking',
+				'/Manual/'            => 'hoteldruid',
+			);
+			$origin     = sanitize_title( preg_replace( array_keys( $p_replace ), $p_replace, $booking['origine'] ) );
+			$origin_id = null; // $booking['hostinserimento']
+			$origin_url = null; // $booking['hostinserimento']
+			switch ( $origin ) {
+				case 'airbnb':
+					break;
+
+				case 'booking':
+					$idexpr         = '/.*Booking.com ([0-9]+) - .*/i';
+					$origin_details = preg_match( $idexpr, $booking['commento'] ) ? $booking['commento'] : null;
+					$origin_details = str_replace( array( "\r", "\n", "\t" ), ' ', $origin_details );
+					$origin_id      = preg_replace( $idexpr, '$1', $origin_details );
+					$checkin_time   = ( preg_match( '/.*arrival: between ([0-9:]+)[[:blank:]].*/i', $origin_details ) )
+					? preg_replace( '/.*arrival: between ([0-9:]+)[[:blank:]].*/i', '$1', $origin_details ) : null;
+					// $origin_url     = ( empty( $origin_id ) ) ? null : 'https://admin.booking.com/hotel/hoteladmin/extranet_ng/manage/booking.html?res_id=' . $origin_id;
+					break;
+
+				case 'expedia':
+					$idexpr         = '/.*Expedia ([0-9]+)([^0-9].*)$/i';
+					$origin_details = preg_match( $idexpr, $booking['commento'] ) ? $booking['commento'] : null;
+					$origin_details = str_replace( array( "\r", "\n", "\t" ), ' ', $origin_details );
+					$origin_id      = preg_replace( $idexpr, '$1', $origin_details );
+					// $origin_url     = ( empty( $origin_id ) ) ? null : 'https://apps.expediapartnercentral.com/lodging/bookings?bookingItemId=' . $origin_id;
+					break;
+
+				// default:
+			}
+			$origin_url     = MultiPass::origin_url($origin, $origin_id);
+
+			$description = "$resource->name, ${attendees}p $date_range";
+
+			$item_args = array(
+				'date'           => MultiPass::format_date_iso( $created ),
+
+				'source'             => 'hoteldruid',
+				'source_id'          => $booking['related'],
+				'source_item_id'     => $booking['idprenota'],
+				// 'source_url'       => $source_url,
+				'origin'             => $origin,
+				'origin_url'         => $origin_url,
+				'edit_url'           => $edit_url,
+				// 'view_url'       => get_edit_post_link($prestation->ID),
+
+				'resource_id'        => $resource_id,
+				// 'status' => $status,
+				'confirmed'          => ( 'S' === $booking['conferma'] ) ? true : null,
+				'description'        => $description,
+				'source_details'     => array(
+					// 'rooms' => $booking['rooms'],
+					'language' => $client['lingua'],
+					'created'  => strtotime( $booking['datainserimento'] ),
+					'updated'  => strtotime( $booking['data_modifica'] ),
+					// 'canceled' => null,
+					// 'is_deleted' => null,
+				),
+				'prestation_id'      => $prestation->ID,
+				'customer'           => array(
+					// TODO: try to get WP user if exists
+					// 'user_id' => $customer_id,
+					'name'  => $prestation_args['customer_name'],
+					'email' => $prestation_args['customer_email'],
+					'phone' => $prestation_args['customer_phone'],
+				),
+				'dates'              => $dates,
+				'attendees'          => array(
+					'total' => $guests_total,
+					'adults'   => $guests_adults,
+					'children' => $guests_children,
+				),
+				// // 'beds' => $beds,
+				'price'              => array(
+					// 'quantity'  => 1,
+					'unit'      => $booking['tariffa_tot'] + $booking['sconto'],
+					'sub_total' => $booking['tariffa_tot'] + $booking['sconto'],
+				),
+				'discount'           => $booking['sconto'],
+				'total'              => $booking['tariffa_tot'],
+				'deposit'            => $booking['caparra'],
+				'paid'               => $booking['pagato'],
+				'balance'            => $booking['tariffa_tot'] - $booking['pagato'],
+				'commission'         => $booking['commissioni'],
+				'taxes'              => $booking['tasseperc'],
+				'type'               => 'booking',
+				'notes'              => $booking['commento'],
+				'hoteldruid_data' => $prenota,
+			);
+
+			$prestation_item = new Mltp_Item( $item_args, true );
+			$prestation->update();
+
+			error_log(
+				__CLASS__ . " Imported $booking[related] $prestation_args[customer_name] - $description - paid $item_args[paid]/$item_args[total] balance $item_args[balance]"
+				// . "\nbooking details " . print_r($booking, true)
+				// . "\nclient " . print_r($client, true)
+				// . "\nprestation " . print_r($prestation_args, true)
+				// . "\nprestation $prestation->ID $prestation->name"
+				// . "\ndetails " . print_r($item_args, true)
+			);
+
+		}
+
+		// if(isset($_REQUEST['hoteldruid_sync_now']) && $_REQUEST['hoteldruid_sync_now'] == true) {
+		// $orders = wc_get_orders( array(
+		// 'limit'        => -1, // Query all orders
+		// 'orderby'      => 'date',
+		// 'order'        => 'ASC',
+		// 'meta_key'     => 'prestation_id', // The postmeta key field
+		// 'meta_compare' => 'NOT EXISTS', // The comparison argument
+		// ));
+		// error_log("found " . count($orders) . " order(s) without prestation");
+		// foreach ($orders as $key => $order) {
+		// $order_post = get_post($order->get_id());
+		// self::update_order_prestation($order_post->ID, $order_post, true);
+		// }
+		// }
 	}
 
 }
