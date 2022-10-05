@@ -477,7 +477,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		}
 
 		$clients = $this->clienti;
-
+		$i=0;
 		foreach ( $bookings as $key => $prenota ) {
 			$booking = $prenota;
 			$resource_id = Mltp_Resource::get_resource_id( 'hoteldruid', $booking['idappartamenti'] );
@@ -527,6 +527,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			);
 
 			$prestation = new Mltp_Prestation( $prestation_args, true );
+			
 			if ( ! $prestation ) {
 				error_log( __CLASS__ . '::' . __FUNCTION__ . ' Could not find nor create prestation, aborting import' );
 				return false;
@@ -581,12 +582,11 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			}
 			$origin_url     = MultiPass::origin_url($origin, $origin_id);
 
-			$description = "$resource->name, ${attendees}p $date_range";
+			$description = "$resource->name, ${guests_total}p $date_range";
 
 			$item_args = array(
-				'date'           => MultiPass::format_date_iso( $created ),
-
 				'source'             => 'hoteldruid',
+				'hoteldruid_uuid' => join('-', [ $booking['related'], $booking['idprenota'] ]),
 				'source_id'          => $booking['related'],
 				'source_item_id'     => $booking['idprenota'],
 				// 'source_url'       => $source_url,
@@ -594,6 +594,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 				'origin_url'         => $origin_url,
 				'edit_url'           => $edit_url,
 				// 'view_url'       => get_edit_post_link($prestation->ID),
+				'date'           => MultiPass::format_date_iso( $created ),
 
 				'resource_id'        => $resource_id,
 				// 'status' => $status,
@@ -616,6 +617,8 @@ class Mltp_HotelDruid extends Mltp_Modules {
 					'phone' => $prestation_args['customer_phone'],
 				),
 				'dates'              => $dates,
+				'from' => $from,
+				'to' => $to,
 				'attendees'          => array(
 					'total' => $guests_total,
 					'adults'   => $guests_adults,
