@@ -241,17 +241,6 @@ class Mltp_HotelDruid extends Mltp_Modules {
 
 		$prefix = 'hoteldruid_';
 
-		$meta_boxes['multipass-settings']['fields']['currency_options'] = array(
-			'name' => __( 'Currency Options', 'multipass' ),
-			'id'   => $prefix . 'currency',
-			'type' => 'custom_html',
-			'std'  => sprintf(
-				__( 'Set currency options in %1$sHotelDruid settings page%2$s', 'multipass' ),
-				'<a href="' . get_admin_url( null, 'admin.php?page=wc-settings#pricing_options-description' ) . '">',
-				'</a>',
-			),
-		);
-
 		$wc_term    = get_term_by( 'slug', 'hoteldruid', 'mltp_detail-source' );
 		$wc_term_id = ( $wc_term ) ? get_term_by( 'slug', 'hoteldruid', 'mltp_detail-source' )->term_id : 'hoteldruid';
 		// Order info on mltp_detail
@@ -480,6 +469,8 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		$i=0;
 		foreach ( $bookings as $key => $prenota ) {
 			$booking = $prenota;
+			$client          = $clients[ $booking['idclienti'] ];
+
 			$resource_id = Mltp_Resource::get_resource_id( 'hoteldruid', $booking['idappartamenti'] );
 			if ( ! $resource_id ) {
 				// No resource associated with this property.
@@ -512,7 +503,6 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			);
 			$date_range = MultiPass::format_date_range( $dates );
 
-			$client          = $clients[ $booking['idclienti'] ];
 
 			$prestation_args = array(
 				'customer_name'  => $client['displayname'],
@@ -527,7 +517,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			);
 
 			$prestation = new Mltp_Prestation( $prestation_args, true );
-			
+
 			if ( ! $prestation ) {
 				error_log( __CLASS__ . '::' . __FUNCTION__ . ' Could not find nor create prestation, aborting import' );
 				return false;
