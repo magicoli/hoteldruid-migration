@@ -1,9 +1,9 @@
-=== HotelDruid migration tool to WooCommerce ===
+=== HotelDruid migration tool to WooCommerce (dev) ===
 Contributors: (this should be a list of wordpress.org userid's)
 Donate link: <http://example.com/>
 Tags: comments, spam Requires at least: 3.0.1
 Requires at least: 4.8
-Tested up to: 6.0.1
+Tested up to: 6.0.2
 Stable tag: 0.1.0
 License: AGPLv3 or later
 License URI: <https://www.gnu.org/licenses/agpl-3.0.fr.html>
@@ -49,6 +49,25 @@ For this, I need to convert all HotelDruid data to import them  in WordPress. An
 42
 
 == Changelog ==
+
+= Unreleased =
+* new MultiPass integration
+* added MultiPass Settings tab
+* add 'related' key to bookings, group bookings for the same client with matching dates
+* add wp user name and link to bookings list
+* added hoteldruid accommodation id to woocommerce product
+* added next step button (not ready, ready, process, processed)
+* added control lists for accommodations, clients and bookings
+* added settings page
+* added admin notices functions
+* fix wp user not found without transient delete
+* fixed show linked products in accommodations list
+* set MultiPass Resources related to eatch HodelDruid appartment
+* show linked products in accommodations list
+* guess country if not provided
+* convert arrival and departure dates, number of nights, number of adults and children in bookings
+* use transient to keep collected clients and bookings data
+* convert clients and bookngs data from druid backup to arrays, for future importation
 
 = 0.1.0 =
 

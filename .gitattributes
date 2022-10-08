@@ -1,2 +1,4 @@
 # .gitattributes built automatically from .distignore, do not modify
 .gitattributes export-ignore
+src/ export-ignore
+.distignore export-ignore

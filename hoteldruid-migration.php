@@ -1,10 +1,10 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       HotelDruid migration tool to WooCommerce
+ * Plugin Name:       HotelDruid migration tool to WooCommerce (dev)
  * Plugin URI:        https://magiiic.com/wordpress/hoteldruid-migration
  * Description:       Migrate HotelDruid backup to WooCommerce Bookings
- * Version:           0.1.0
+ * Version:           0.1.0.x-dev
  * Author:            Magiiic
  * Author URI:        https://magiiic.com/
  * License:           GPL-2.0+
@@ -32,7 +32,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 0.1.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'HOTELDRUID_MIGRATION_VERSION', '0.1.0' );
+define( 'HOTELDRUID_MIGRATION_VERSION', '0.1.0.x-dev' . time() );
 define( 'HOTELDRUID_MIGRATION_PLUGIN_NAME', 'hoteldruid-migration' );
 
 /**
