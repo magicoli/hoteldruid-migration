@@ -130,16 +130,16 @@ class Hoteldruid_Migration {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-public.php';
 
+
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-settings.php';
+		$this->settings = new Hoteldruid_Migration_Settings();
+
 		add_filter('multipass_load_modules', function($modules) {
 			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/modules/class-mltp-hoteldruid.php';
 			return $modules;
 		});
 
 		$this->loader = new Hoteldruid_Migration_Loader();
-
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-settings.php';
-		$this->settings = new Hoteldruid_Migration_Settings();
-
 	}
 
 	/**

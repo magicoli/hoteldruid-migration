@@ -134,7 +134,7 @@ class Hoteldruid_Migration_Settings {
 			array(
 				'hook'     => 'mb_settings_pages',
 				'callback' => 'register_settings_pages',
-				'priority' => 30,
+				// 'priority' => 30,
 			),
 			array(
 				'hook'     => 'rwmb_meta_boxes',
@@ -150,22 +150,22 @@ class Hoteldruid_Migration_Settings {
 			),
 		);
 
-		if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
-			$filters = $filters + array(
-				array(
-					'hook'     => 'rwmb_meta_boxes',
-					'callback' => 'hoteldruid_migration_tab_accommodations',
-				),
-				array(
-					'hook'     => 'rwmb_meta_boxes',
-					'callback' => 'hoteldruid_migration_tab_clients',
-				),
-				array(
-					'hook'     => 'rwmb_meta_boxes',
-					'callback' => 'hoteldruid_migration_tab_bookings',
-				),
-			);
-		}
+		// if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
+		// 	$filters = $filters + array(
+		// 		array(
+		// 			'hook'     => 'rwmb_meta_boxes',
+		// 			'callback' => 'hoteldruid_migration_tab_accommodations',
+		// 		),
+		// 		array(
+		// 			'hook'     => 'rwmb_meta_boxes',
+		// 			'callback' => 'hoteldruid_migration_tab_clients',
+		// 		),
+		// 		array(
+		// 			'hook'     => 'rwmb_meta_boxes',
+		// 			'callback' => 'hoteldruid_migration_tab_bookings',
+		// 		),
+		// 	);
+		// }
 
 		foreach ( $filters as $hook ) {
 			( empty( $hook['component'] ) ) && $hook['component']         = __CLASS__;
@@ -185,30 +185,31 @@ class Hoteldruid_Migration_Settings {
 
 	static function register_settings_pages( $settings_pages ) {
 		$settings_pages['hoteldruid-migration'] = array(
-			'menu_title' => __( 'HotelDruid migration', 'hoteldruid-migration' ),
+			'menu_title' => __( 'HotelDruid', 'hoteldruid-migration' ),
+			'page_title' => __( 'HotelDruid Migration', 'hoteldruid-migration' ),
 			'id'         => 'hoteldruid-migration',
 			'position'   => 25,
 			'parent'     => HOTELDRUID_MIGRATION_MENU,
 			'capability' => 'manage_woocommerce',
-			'style'      => 'no-boxes',
-			'columns'    => 1,
+			// 'style'      => 'no-boxes',
+			'columns'    => 2,
 			// 'tabs'       => [
-			// 'settings'       => 'Settings',
-			// 'accommodations' => 'Accomodations',
-			// 'clients'        => 'Clients',
-			// 'bookings'       => 'Bookings',
+			// 	'settings'       => 'Settings',
+			// 	'accommodations' => 'Accomodations',
+			// 	'clients'        => 'Clients',
+			// 	'bookings'       => 'Bookings',
 			// ],
 			'icon_url'   => 'dashicons-admin-generic',
 		);
 
-		if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
-			$settings_pages['hoteldruid-migration']['tabs'] = array(
-				'settings'       => __('Settings', 'hoteldruid-migration'),
-				'accommodations' => 'Accomodations',
-				'clients'        => 'Clients',
-				'bookings'       => 'Bookings',
-			);
-		}
+		// if ( ! empty( hdm_get_option( 'import_data' ) ) ) {
+		// 	$settings_pages['hoteldruid-migration']['tabs'] = array(
+		// 		'settings'       => __('Settings', 'hoteldruid-migration'),
+		// 		'accommodations' => 'Accomodations',
+		// 		'clients'        => 'Clients',
+		// 		'bookings'       => 'Bookings',
+		// 	);
+		// }
 
 		return $settings_pages;
 	}
@@ -220,6 +221,8 @@ class Hoteldruid_Migration_Settings {
 			'title'          => __( 'Settings', 'hoteldruid-migration' ),
 			'id'             => 'hoteldruid-migration-settings',
 			'settings_pages' => array( 'hoteldruid-migration' ),
+			'style' => 'seamless',
+			'priority' => 'high',
 			'tab'            => 'settings',
 			'fields'         => array(
 				array(
@@ -233,22 +236,13 @@ class Hoteldruid_Migration_Settings {
 					'type'              => 'file_input',
 					'desc'              => __( 'HotelDruid backup file full path. Must be saved in a place readable by the web server, but outside website folder.', 'hoteldruid-migration' ),
 					'placeholder'       => __( '/full/path/to/hoteld_backup.php', 'hoteldruid-migration' ),
-					'columns'           => 9,
+					// 'columns'           => 9,
 					'sanitize_callback' => 'hoteldruid_backup_file_validation',
 				),
 				array(
-					'name'     => __( 'File info', 'hoteldruid-migration' ),
-					'id'       => $prefix . 'file_info',
-					'type'     => 'custom_html',
-					'callback' => 'hdm_file_info_output',
-					'visible'  => array(
-						'when'     => array( array( 'hoteldruid_backup_file', '!=', '' ) ),
-						'relation' => 'or',
-					),
-				),
-				array(
-					'name'              => __( 'Import data (modified)', 'hoteldruid-migration' ),
+					'name'              => __( 'Import in WooCommerce', 'hoteldruid-migration' ),
 					'id'                => $prefix . 'import_data',
+					'desc' => __( 'Work in progress. Import bookings as WooCommerce orders.', 'hoteldruid-migration' ),
 					'type'              => 'button_group',
 					'options'           => hdm_import_button_values(),
 					'sanitize_callback' => 'import_data_field_validation',
@@ -282,68 +276,88 @@ class Hoteldruid_Migration_Settings {
 			),
 		);
 
-		return $meta_boxes;
-	}
-
-	static function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
-		$prefix = '';
-
-		$meta_boxes[] = array(
-			'title'          => __( 'Accommodations', 'hoteldruid-migration' ),
-			'id'             => 'hoteldruid-migration-accommodations',
-			'settings_pages' => array( 'hoteldruid-migration' ),
-			'tab'            => 'accommodations',
-			'fields'         => array(
-				array(
-					'id'       => $prefix . 'hdm_list_accommodations',
-					'type'     => 'custom_html',
-					'callback' => 'hdm_list_accommodations_output',
-				),
-			),
-		);
-
-		return $meta_boxes;
-	}
-
-	static function hoteldruid_migration_tab_clients( $meta_boxes ) {
-		$prefix = '';
-
-		$meta_boxes[] = array(
-			'title'          => __( 'Clients', 'hoteldruid-migration' ),
-			'id'             => 'hoteldruid-migration-clients',
-			'settings_pages' => array( 'hoteldruid-migration' ),
-			'tab'            => 'clients',
-			'fields'         => array(
-				array(
-					'id'       => $prefix . 'hdm_list_clients',
-					'type'     => 'custom_html',
-					'callback' => 'hdm_list_clients_output',
-				),
-			),
-		);
+		$meta_boxes[] = [
+        // 'title'          => __( 'File data', 'hoteldruid-migration' ),
+        'id'             => 'file_info',
+				'style' => 'seamless',
+				'context' => 'side',
+        'settings_pages' => ['hoteldruid-migration'],
+        'fields'         => [
+					array(
+						'name'     => __( 'File data', 'hoteldruid-migration' ),
+						'id'       => $prefix . 'file_info',
+						'type'     => 'custom_html',
+						'callback' => 'hdm_file_info_output',
+						'visible'  => array(
+							'when'     => array( array( 'hoteldruid_backup_file', '!=', '' ) ),
+							'relation' => 'or',
+						),
+					),
+        ],
+    ];
 
 		return $meta_boxes;
 	}
 
-	static function hoteldruid_migration_tab_bookings( $meta_boxes ) {
-		$prefix = '';
+	// static function hoteldruid_migration_tab_accommodations( $meta_boxes ) {
+	// 	$prefix = '';
+	//
+	// 	$meta_boxes[] = array(
+	// 		'title'          => __( 'Accommodations', 'hoteldruid-migration' ),
+	// 		'id'             => 'hoteldruid-migration-accommodations',
+	// 		'settings_pages' => array( 'hoteldruid-migration' ),
+	// 		'tab'            => 'accommodations',
+	// 		'fields'         => array(
+	// 			array(
+	// 				'id'       => $prefix . 'hdm_list_accommodations',
+	// 				'type'     => 'custom_html',
+	// 				'callback' => 'hdm_list_accommodations_output',
+	// 			),
+	// 		),
+	// 	);
+	//
+	// 	return $meta_boxes;
+	// }
 
-		$meta_boxes[] = array(
-			'title'          => __( 'Bookings', 'hoteldruid-migration' ),
-			'id'             => 'hoteldruid-migration-bookings',
-			'settings_pages' => array( 'hoteldruid-migration' ),
-			'tab'            => 'bookings',
-			'fields'         => array(
-				array(
-					'id'       => $prefix . 'hdm_list_bookings',
-					'type'     => 'custom_html',
-					'callback' => 'hdm_list_bookings_output',
-				),
-			),
-		);
+	// static function hoteldruid_migration_tab_clients( $meta_boxes ) {
+	// 	$prefix = '';
+	//
+	// 	$meta_boxes[] = array(
+	// 		'title'          => __( 'Clients', 'hoteldruid-migration' ),
+	// 		'id'             => 'hoteldruid-migration-clients',
+	// 		'settings_pages' => array( 'hoteldruid-migration' ),
+	// 		'tab'            => 'clients',
+	// 		'fields'         => array(
+	// 			array(
+	// 				'id'       => $prefix . 'hdm_list_clients',
+	// 				'type'     => 'custom_html',
+	// 				'callback' => 'hdm_list_clients_output',
+	// 			),
+	// 		),
+	// 	);
+	//
+	// 	return $meta_boxes;
+	// }
 
-		return $meta_boxes;
-	}
+	// static function hoteldruid_migration_tab_bookings( $meta_boxes ) {
+	// 	$prefix = '';
+	//
+	// 	$meta_boxes[] = array(
+	// 		'title'          => __( 'Bookings', 'hoteldruid-migration' ),
+	// 		'id'             => 'hoteldruid-migration-bookings',
+	// 		'settings_pages' => array( 'hoteldruid-migration' ),
+	// 		'tab'            => 'bookings',
+	// 		'fields'         => array(
+	// 			array(
+	// 				'id'       => $prefix . 'hdm_list_bookings',
+	// 				'type'     => 'custom_html',
+	// 				'callback' => 'hdm_list_bookings_output',
+	// 			),
+	// 		),
+	// 	);
+	//
+	// 	return $meta_boxes;
+	// }
 
 	static function plugin_action_links( $links ) {
 

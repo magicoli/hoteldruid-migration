@@ -197,23 +197,17 @@ class Mltp_HotelDruid extends Mltp_Modules {
 	function register_settings_fields( $meta_boxes ) {
 		$prefix = 'hoteldruid_';
 
-		$meta_boxes['multipass-hoteldruid-settings'] = array(
-			'title'          => __( 'HotelDruid Settings', 'hoteldruid-migration' ),
+		$meta_boxes['multipass'] = array(
+			'title'          => __( 'MultiPass Import', 'hoteldruid-migration' ),
 			'id'             => 'multipass-hoteldruid-settings',
-			'settings_pages' => array( 'multipass-settings' ),
-			'tab'            => 'hoteldruid',
+			'settings_pages' => array( 'hoteldruid-migration' ),
+			// 'tab'            => 'hoteldruid',
 			'fields'         => array(
-				array(
-					'name'  => __( 'Disclaimer', 'hoteldruid-migration' ),
-					'type'  => 'custom_html',
-					'desc'  => HOTELDRUID_DISCLAIMER,
-					'class' => 'warning',
-				),
-				array(
-					'name'     => __( 'Data found in backup file', 'hoteldruid-migration' ),
-					'type'     => 'custom_html',
-					'callback' => array( $this, 'render_import_data' ),
-				),
+				// array(
+				// 	'name'     => __( 'Data found in backup file', 'hoteldruid-migration' ),
+				// 	'type'     => 'custom_html',
+				// 	'callback' => array( $this, 'render_import_data' ),
+				// ),
 				array(
 					'name'              => __( 'Resources', 'multipass' ),
 					'id'                => 'resources',
@@ -296,7 +290,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		// error_log("options " . print_r($options, true));
 
 		foreach ( $options as $idappartamenti => $resource_id ) {
-			$query = $this->get_resources( $idappartamenti );
+			$query = $this->query_resources( $idappartamenti );
 
 			while ( $query->have_posts() ) {
 				$query->the_post();
@@ -321,7 +315,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		return $values;
 	}
 
-	function get_resources( $idappartamenti = null ) {
+	function query_resources( $idappartamenti = null ) {
 		$args  = array(
 			'posts_per_page' => -1,
 			'post_type'      => 'mltp_resource',
@@ -340,7 +334,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		if ( empty( $idappartamenti ) ) {
 			return;
 		}
-		$query = $this->get_resources( $idappartamenti );
+		$query = $this->query_resources( $idappartamenti );
 		if ( $query->have_posts() ) {
 			$query->the_post();
 			return get_the_ID();
