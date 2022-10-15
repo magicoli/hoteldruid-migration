@@ -399,42 +399,6 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		return $data;
 	}
 
-	function save_post_action( $post_id, $post, $update ) {
-		if ( ! $update ) {
-			return;
-		}
-		if ( 'shop_order' !== $post->post_type ) {
-			return;
-		}
-
-		remove_action( current_action(), __CLASS__ . '::' . __FUNCTION__ );
-
-		self::update_order_prestation( $post_id, $post, $update );
-
-		add_action( current_action(), __CLASS__ . '::' . __FUNCTION__, 10, 3 );
-	}
-
-	function wp_insert_post_action( $post_id, $post, $update ) {
-		if ( ! $update ) {
-			return;
-		}
-		if ( MultiPass::is_new_post() ) {
-			return; // new posts are empty
-		}
-
-		remove_action( current_action(), __CLASS__ . '::' . __FUNCTION__ );
-		switch ( $post->post_type ) {
-			// case 'shop_order':
-			// self::update_order_prestation($post_id, $post, $update );
-			// break;
-
-			case 'mltp_prestation':
-				self::update_prestation_orders( $post_id, $post, $update );
-				break;
-		}
-		add_action( current_action(), __CLASS__ . '::' . __FUNCTION__, 10, 3 );
-	}
-
 	function import_now_sanitize_callback( $value, $field, $oldvalue ) {
 		if ( $value == true ) {
 			self::import_now();
