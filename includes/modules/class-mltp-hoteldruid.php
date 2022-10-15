@@ -461,26 +461,6 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			);
 			$date_range = MultiPass::format_date_range( $dates );
 
-
-			$prestation_args = array(
-				'customer_name'  => $client['displayname'],
-				'customer_email' => preg_replace( '/,.*/', '', $client['email'] ),
-				'customer_phone' => preg_replace( '/,.*/', '', $client['phone'] ),
-				'date'           => MultiPass::format_date_iso( $created ),
-				// 'source_url'       => $source_url,
-				// 'origin_url'       => $origin_url,
-				// 'confirmed' => $confirmed,
-				'from'           => $from,
-				'to'             => $to,
-			);
-
-			$prestation = new Mltp_Prestation( $prestation_args, true );
-
-			if ( ! $prestation ) {
-				error_log( __CLASS__ . '::' . __FUNCTION__ . ' Could not find nor create prestation, aborting import' );
-				return false;
-			}
-			$edit_url  = get_edit_post_link( $prestation->ID );
 			$guests_total = $booking['num_persone'];
 
 			if( preg_match('/(adult)/', $booking['cat_persone']) ) {
@@ -540,8 +520,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 				// 'source_url'       => $source_url,
 				'origin'             => $origin,
 				'origin_url'         => $origin_url,
-				'edit_url'           => $edit_url,
-				// 'view_url'       => get_edit_post_link($prestation->ID),
+				// 'edit_url'           => $edit_url,
 				'date'           => MultiPass::format_date_iso( $created ),
 
 				'resource_id'        => $resource_id,
@@ -556,7 +535,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 					// 'canceled' => null,
 					// 'is_deleted' => null,
 				),
-				'prestation_id'      => $prestation->ID,
+				// 'prestation_id'      => $prestation->ID,
 				'customer'           => array(
 					// TODO: try to get WP user if exists
 					// 'user_id' => $customer_id,
@@ -590,7 +569,32 @@ class Mltp_HotelDruid extends Mltp_Modules {
 				'hoteldruid_data' => $prenota,
 			);
 
+			$prestation_args = array(
+				'customer_name'  => $client['displayname'],
+				'customer_email' => preg_replace( '/,.*/', '', $client['email'] ),
+				'customer_phone' => preg_replace( '/,.*/', '', $client['phone'] ),
+				'date'           => MultiPass::format_date_iso( $created ),
+				// 'source_url'       => $source_url,
+				// 'origin_url'       => $origin_url,
+				// 'confirmed' => $confirmed,
+				'from'           => $from,
+				'to'             => $to,
+			);
+
+			$prestation = new Mltp_Prestation( $prestation_args, true );
+
+			// if ( ! $prestation ) {
+			// 	error_log( __CLASS__ . '::' . __FUNCTION__ . ' Could not find nor create prestation, aborting import' );
+			// 	return false;
+			// }
+			$edit_url  = get_edit_post_link( $prestation->ID );
 			$prestation_item = new Mltp_Item( $item_args, true );
+			$item_updates = array(
+				'prestation_id'      => $prestation->ID,
+			);
+			$prestation_item->update($item_updates);
+
+
 			$prestation->update();
 
 			error_log(
