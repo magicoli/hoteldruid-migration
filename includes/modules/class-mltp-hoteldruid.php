@@ -444,7 +444,7 @@ class Mltp_HotelDruid extends Mltp_Modules {
 	}
 
 	function import_now() {
-
+		ini_set('max_execution_time', 300);
 		foreach ( $this->appartementi as $idappartamenti => $appartment ) {
 			$appartment['resource_id'] = $this->get_resource_id( $idappartamenti );
 			if ( empty( $appartment['resource_id'] ) ) {
