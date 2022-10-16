@@ -426,8 +426,13 @@ class Mltp_HotelDruid extends Mltp_Modules {
 		$clients = $this->clienti;
 		$i=0;
 		foreach ( $bookings as $key => $prenota ) {
+			// if($i++ >= 100) break; // avoid thousands of imports during debug
+
 			$booking = $prenota;
 			$client          = $clients[ $booking['idclienti'] ];
+			$customer_name  = $client['displayname'];
+			$customer_email = preg_replace( '/,.*/', '', $client['email'] );
+			$customer_phone = preg_replace( '/,.*/', '', $client['phone'] );
 
 			$resource_id = Mltp_Resource::get_resource_id( 'hoteldruid', $booking['idappartamenti'] );
 			if ( ! $resource_id ) {
@@ -461,21 +466,36 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			);
 			$date_range = MultiPass::format_date_range( $dates );
 
-			$guests_total = $booking['num_persone'];
+			if( preg_match('/>s>/', $booking['cat_persone']) ) {
+				$c_replace  = array(
+					'/adult.*/i' => 'adults',
+					'/child.*/i' => 'children',
+					'/enfant.*/i' => 'children',
+					'/bab.*/i' => 'babies',
+					'/bébé.*/i' => 'babies',
+					'/bebe.*/i' => 'babies',
+				);
+				$split = preg_split('/<[0-9]+>/', $booking['cat_persone']);
+				$attendees = array();
+				foreach ($split as $encoded) {
+					if(!preg_match('/>/', $encoded)) continue;
+					$cat_count = preg_replace('/>.*/', '', $encoded);
+					$cat_name = preg_replace('/.*>/', '', $encoded);
+					$cat_name = sanitize_title( preg_replace( array_keys( $c_replace ), $c_replace, $cat_name ) );
 
-			if( preg_match('/(adult)/', $booking['cat_persone']) ) {
-				$booking['adults'] = preg_replace('/1([0-9]+)>s.*adult.*/', '$1', $booking['cat_persone']);
-				$booking['children'] = ( preg_match('/(child|enfant)/', $booking['cat_persone']) ) ? preg_replace('/.*adult.*([0-9]+)>s>.*/', '$1', $booking['cat_persone']) : 0;
-			} else if( preg_match('/(child|enfant)/', $booking['cat_persone']) ) {
-				$booking['adults'] = 0;
-				$booking['children'] = preg_replace('/1([0-9]+)>s.*/', '$1', $booking['cat_persone']);
+					$attendees[$cat_name] = $cat_count;
+				}
+				$sum = array_sum($attendees);
+				$attendees['total'] = $booking['num_persone'];
+
+				if( $attendees['total'] != $sum ) {
+					error_log("calculated sum $attendees[calculate] != $attendees[total] - data received: cat_persone='$booking[cat_persone]', num_persone=$booking[num_persone] decoded: " . print_r($attendees, true));
+				}
+			} else {
+				$attendees['total'] = $booking['num_persone'];
 			}
 
-			$guests_adults    = empty($booking['adults']) ? 0 : $booking['adults'];
-			$guests_children  = empty($booking['children']) ? 0 : $booking['children'];
-
 			$source_url = null;
-
 			$p_replace  = array(
 				'/AirbnbIntegration/' => 'airbnb',
 				'/Booking.?Com/i'     => 'booking',
@@ -508,15 +528,17 @@ class Mltp_HotelDruid extends Mltp_Modules {
 
 				// default:
 			}
-			$origin_url     = MultiPass::origin_url($origin, $origin_id);
+			$description = "$resource->name";
+			// , ${guests_total}p $date_range";
+			$origin_url     = MultiPass::source_edit_url($origin, $origin_id);
 
-			$description = "$resource->name, ${guests_total}p $date_range";
-
+			$year = date('Y', $from);
 			$item_args = array(
 				'source'             => 'hoteldruid',
-				'hoteldruid_uuid' => join('-', [ $booking['related'], $booking['idprenota'] ]),
-				'source_id'          => $booking['related'],
-				'source_item_id'     => $booking['idprenota'],
+				'source_id'          => $year . '/' . $booking['idprenota'],
+				// 'hoteldruid_uuid' => join('-', [ $booking['related'], $booking['idprenota'] ]),
+				'hoteldruid_related' => $booking['related'],
+				// 'source_item_id'     => $booking['idprenota'],
 				// 'source_url'       => $source_url,
 				'origin'             => $origin,
 				'origin_url'         => $origin_url,
@@ -535,22 +557,19 @@ class Mltp_HotelDruid extends Mltp_Modules {
 					// 'canceled' => null,
 					// 'is_deleted' => null,
 				),
-				// 'prestation_id'      => $prestation->ID,
+				// 'prestation_id'      => $prestation->id,
 				'customer'           => array(
 					// TODO: try to get WP user if exists
 					// 'user_id' => $customer_id,
-					'name'  => $prestation_args['customer_name'],
-					'email' => $prestation_args['customer_email'],
-					'phone' => $prestation_args['customer_phone'],
+					'name'  => $customer_name,
+					'email' => $customer_email,
+					'phone' => $customer_phone,
 				),
 				'dates'              => $dates,
 				'from' => $from,
 				'to' => $to,
-				'attendees'          => array(
-					'total' => $guests_total,
-					'adults'   => $guests_adults,
-					'children' => $guests_children,
-				),
+				'guests_total' => $attendees,
+				'attendees'          => $attendees,
 				// // 'beds' => $beds,
 				'price'              => array(
 					// 'quantity'  => 1,
@@ -570,9 +589,9 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			);
 
 			$prestation_args = array(
-				'customer_name'  => $client['displayname'],
-				'customer_email' => preg_replace( '/,.*/', '', $client['email'] ),
-				'customer_phone' => preg_replace( '/,.*/', '', $client['phone'] ),
+				'customer_name'  => $customer_name,
+				'customer_email' => $customer_email,
+				'customer_phone' => $customer_phone,
 				'date'           => MultiPass::format_date_iso( $created ),
 				// 'source_url'       => $source_url,
 				// 'origin_url'       => $origin_url,
@@ -587,24 +606,24 @@ class Mltp_HotelDruid extends Mltp_Modules {
 			// 	error_log( __CLASS__ . '::' . __FUNCTION__ . ' Could not find nor create prestation, aborting import' );
 			// 	return false;
 			// }
-			$edit_url  = get_edit_post_link( $prestation->ID );
+			$edit_url  = get_edit_post_link( $prestation->id );
 			$prestation_item = new Mltp_Item( $item_args, true );
 			$item_updates = array(
-				'prestation_id'      => $prestation->ID,
+				'prestation_id'      => $prestation->id,
 			);
 			$prestation_item->update($item_updates);
 
 
 			$prestation->update();
 
-			error_log(
-				__CLASS__ . " Imported $booking[related] $prestation_args[customer_name] - $description - paid $item_args[paid]/$item_args[total] balance $item_args[balance]"
-				// . "\nbooking details " . print_r($booking, true)
-				// . "\nclient " . print_r($client, true)
-				// . "\nprestation " . print_r($prestation_args, true)
-				// . "\nprestation $prestation->ID $prestation->name"
-				// . "\ndetails " . print_r($item_args, true)
-			);
+			// error_log(
+			// 	__CLASS__ . " Imported $i - $booking[related] $prestation_args[customer_name] - $description - paid $item_args[paid]/$item_args[total] balance $item_args[balance]"
+			// 	// . "\nbooking details " . print_r($booking, true)
+			// 	// . "\nclient " . print_r($client, true)
+			// 	// . "\nprestation " . print_r($prestation_args, true)
+			// 	// . "\nprestation $prestation->id $prestation->name"
+			// 	// . "\ndetails " . print_r($item_args, true)
+			// );
 
 		}
 
